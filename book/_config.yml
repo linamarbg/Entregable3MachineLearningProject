@@ -43,6 +43,6 @@ html:
   home_page_in_navbar: true
 
 repository:
-  url: https://github.com/camilomolinaguerrero-sudo/Entregable3MachineLearningProject
+  url: https://github.com/linamarbg/Entregable3MachineLearningProject
   branch: main
   path_to_book: book

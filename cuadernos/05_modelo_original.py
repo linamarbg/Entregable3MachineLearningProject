@@ -93,8 +93,9 @@
 # **Calibración.** Un pool lineal de pronósticos calibrados no está calibrado salvo que todos coincidan
 # {cite}`ranjan2010combining`: queda subdisperso, con probabilidades encogidas hacia el centro. Por eso,
 # después del pool se ajusta una calibración beta $\sigma(a \log q - b\log(1 - q) + c)$ {cite}`kull2017beta`
-# por Newton-Raphson ponderado con los mismos pesos de olvido. Es una transformación monótona: no cambia el
-# AUC y se activa solo si mejora la log-loss en la validación interna.
+# por Newton-Raphson ponderado con los mismos pesos de olvido, con la restricción $a, b \ge 0$: si un
+# coeficiente sale negativo, se reajusta sin ese rasgo. Con esa restricción es una transformación creciente
+# (proposición 9), así que no cambia el AUC; se activa solo si mejora la log-loss en la validación interna.
 #
 # ## 5.3 Propiedades
 #
@@ -203,6 +204,117 @@
 # poca capacidad por nodo, y la jerarquía con encogimiento evita que los nodos pequeños (con $n_r$ chico y
 # cota grande) se aparten mucho de su padre. Esa es la justificación de usar nodos tan finos como el corredor.
 #
+# ### Fundamento estadístico
+#
+# Las proposiciones 1 a 6 son de optimización y de capacidad. Las cuatro siguientes responden a las
+# preguntas estadísticas: por qué la pérdida es la log-loss, cuánto puede empeorar el combinador fuera de
+# muestra, qué garantiza la calibración y hacia dónde convergen los pesos cuando hay más datos.
+#
+# **Proposición 7 (la log-loss es una regla de puntuación estrictamente propia).** Si $Y \sim
+# \mathrm{Bernoulli}(\pi)$, la pérdida esperada $L_\pi(q) = \mathbb{E}[\ell(Y, q)] = -\pi\log q - (1-\pi)\log(1-q)$
+# tiene un único minimizador en $q = \pi$, y el exceso de pérdida es una divergencia KL:
+#
+# $$
+# L_\pi(q) - L_\pi(\pi) = \mathrm{KL}\big(\mathrm{Ber}(\pi)\,\|\,\mathrm{Ber}(q)\big) \ge 0 .
+# $$ (eq-propia)
+#
+# *Demostración.* $L_\pi(q) - L_\pi(\pi) = \pi\log(\pi/q) + (1-\pi)\log\{(1-\pi)/(1-q)\}$, que es la definición de
+# $\mathrm{KL}(\mathrm{Ber}(\pi)\|\mathrm{Ber}(q))$; la KL es no negativa y vale cero solo si $q = \pi$
+# (desigualdad de Gibbs). $\square$
+#
+# Por eso el combinador minimiza la log-loss y no el error de clasificación: una regla estrictamente propia
+# {cite}`gneiting2007strictly` premia decir la probabilidad verdadera, de modo que los pesos que minimizan
+# {eq}`eq-objetivo-ajkl` buscan probabilidades calibradas, no solo un buen orden. Además, la log-loss es la
+# menos log-verosimilitud de Bernoulli, que es lo que hace posible la lectura bayesiana de la proposición 5, y su
+# exceso es una KL: el mismo lenguaje de la penalización hacia el padre.
+#
+# **Proposición 8 (cota de generalización del nodo).** Supóngase que las $n_r$ filas del nodo son independientes
+# e idénticamente distribuidas y sea $R(w) = \mathbb{E}[\ell(Y, w^\top p(X))]$ el riesgo y $\hat R(w)$ su media
+# muestral. Con probabilidad al menos $1 - \delta$, simultáneamente para todo $w \in \Delta^M$,
+#
+# $$
+# R(w) \le \hat R(w) + \frac{2}{\varepsilon}\sqrt{\frac{2\log M}{n_r}} + \log\frac{1}{\varepsilon}\,\sqrt{\frac{\log(1/\delta)}{2\,n_r}} .
+# $$ (eq-generalizacion)
+#
+# *Demostración.* Con $q \in [\varepsilon, 1-\varepsilon]$, $|\partial \ell / \partial q| = |q - y| / \{q(1-q)\} \le
+# 1/\varepsilon$, así que cada $q \mapsto \ell(y_i, q)$ es $(1/\varepsilon)$-lipschitziana, y $0 \le \ell \le
+# \log(1/\varepsilon)$. La cota uniforme de Rademacher {cite}`bartlett2002rademacher,mohri2018foundations`
+# (teorema 3.3 de Mohri et al.) da $R(w) \le \hat R(w) + 2\,\mathfrak{R}_{n_r}(\ell\circ\mathcal{F}_r) +
+# \log(1/\varepsilon)\sqrt{\log(1/\delta)/(2n_r)}$; el lema de contracción de Ledoux y Talagrand
+# {cite}`ledoux1991probability` da $\mathfrak{R}_{n_r}(\ell\circ\mathcal{F}_r) \le (1/\varepsilon)\,
+# \mathfrak{R}_{n_r}(\mathcal{F}_r)$, y la proposición 6 acota $\mathfrak{R}_{n_r}(\mathcal{F}_r) \le
+# \sqrt{2\log M/n_r}$. $\square$
+#
+# La cota no depende del número de variables del problema, solo de $M = 9$ y de $n_r$; con el $\varepsilon$
+# nominal de $10^{-4}$ es holgada en términos absolutos (las probabilidades reales del pool están lejos de
+# $\varepsilon$), pero muestra la escala: el término de capacidad decrece como $1/\sqrt{n_r}$, de modo que en los
+# nodos con pocas filas la diferencia entre el riesgo empírico y el poblacional puede ser grande, y ahí actúa el
+# encogimiento (proposición 5). Las corredor-semanas no son independientes (comparten corredor y semana); bajo
+# dependencia débil, $n_r$ debe leerse como un tamaño de muestra efectivo menor, y por eso la evaluación no se
+# apoya en esta cota sino en la validación hacia adelante del capítulo 6.
+#
+# **Proposición 9 (la calibración beta restringida conserva el orden y el AUC).** Sea
+# $g(q) = \sigma(c + a\log q - b\log(1-q))$ con $a, b \ge 0$ y $a + b > 0$. Entonces $g$ es estrictamente creciente
+# en $(0, 1)$ y el AUC de $g(q)$ es igual al de $q$.
+#
+# *Demostración.* $g'(q) = g(q)\{1 - g(q)\}\,\{a/q + b/(1-q)\} > 0$. El AUC es la probabilidad de que un positivo
+# reciba un puntaje mayor que un negativo, que depende solo del orden de los puntajes, y una transformación
+# estrictamente creciente no cambia el orden. $\square$
+#
+# Sin la restricción el mapa deja de ser creciente: si $a$ y $b$ tienen signos distintos, $a/q + b/(1-q)$ cambia de
+# signo en $(0, 1)$ y el mapa no es monótono; si ambos son negativos, es decreciente e invierte el orden. La implementación
+# impone $a, b \ge 0$ como recomiendan {cite:t}`kull2017beta`; en los pliegues donde la validación interna eligió
+# calibrar (k1, k3 y k4) los coeficientes estimados fueron $a \in [1{,}09;\, 1{,}19]$ y $b \in [0{,}77;\, 0{,}99]$, es
+# decir, la restricción no se activó y los resultados reportados no cambian. La prueba unitaria
+# `test_calibracion_beta_es_monotona_y_conserva_el_auc` construye datos en forma de U donde el ajuste libre da
+# $a < 0$ y verifica que el restringido es monótono y deja el AUC intacto.
+#
+# **Proposición 10 (consistencia de los pesos del nodo).** Fíjense el nodo $r$, los modelos base, $\gamma = 1$ y
+# $\lambda$. Si las filas del nodo son independientes con la misma distribución, $R(w)$ tiene un único minimizador
+# $w_r^\star$ en $\Delta^M$ (lo que ocurre, por ejemplo, si la matriz de segundos momentos de $p(X)$ es definida
+# positiva) y el padre tiene soporte completo, entonces el estimador $\hat w_r$ de {eq}`eq-objetivo-ajkl` converge
+# en probabilidad a $w_r^\star$ cuando $n_r \to \infty$.
+#
+# *Demostración.* El problema del nodo es minimizar $\hat F_n(w) = \hat R(w) + (\lambda/n_r)\mathrm{KL}(w\|w_{\pi(r)})$.
+# Como $0 \le \mathrm{KL}(w\|w_{\pi(r)}) \le \log(1/\min_m w_{\pi(r),m}) < \infty$ en el símplex, el segundo término
+# tiende a cero uniformemente. La proposición 8 (o la ley uniforme de los grandes números para una clase con
+# complejidad de Rademacher que tiende a cero) da $\sup_{w \in \Delta^M} |\hat R(w) - R(w)| \to 0$ en probabilidad.
+# Entonces $\sup_w |\hat F_n(w) - R(w)| \to 0$; como $\Delta^M$ es compacto, $R$ es continua y su minimizador es
+# único, el teorema de consistencia de los estimadores extremos {cite}`newey1994large` (teorema 2.1) da
+# $\hat w_r \to w_r^\star$. $\square$
+#
+# Las proposiciones 5 y 10 son las dos caras del mismo compromiso entre sesgo y varianza: con pocos datos el
+# prior domina y el nodo copia a su padre (poca varianza, posible sesgo); con muchos datos el encogimiento se
+# desvanece ($\mu_r = \lambda / S_r \to 0$) y los pesos convergen a la mejor combinación lineal de ese nodo. Con
+# $\gamma < 1$ el tamaño efectivo $S_r$ queda acotado por el número de filas por semana dividido entre
+# $1 - \gamma$: es una decisión de diseño, no un descuido, porque el objetivo es seguir una relación que cambia
+# con el tiempo, no estimar una fija.
+#
+# ### Supuestos y cómo se verifican
+#
+# | Supuesto | Dónde se usa | Cómo se verifica o se mitiga |
+# |---|---|---|
+# | Las probabilidades base son fuera de muestra | Toda la formulación: si el combinador ve predicciones ajustadas a sus propias filas, premia al modelo más sobreajustado | El historial del pliegue $k$ son predicciones de bloques externos anteriores (en k1, de ventanas internas); ninguna semana es posterior al corte (capítulo 6) |
+# | La jerarquía es anidada | Proposiciones 1 a 5 (cada nodo tiene un solo padre) | El código del corredor incluye la central y el grupo, así que el anidamiento se cumple por construcción |
+# | $p_i \in [\varepsilon, 1-\varepsilon]$ | Proposiciones 3 y 8 (gradiente acotado y pérdida lipschitziana) | Recorte explícito en la implementación |
+# | Filas independientes dentro del nodo | Proposiciones 8 y 10 | No se cumple estrictamente; por eso la evidencia es la validación hacia adelante y las pruebas con bloques de semana y varianza HAC (capítulo 6), no la cota |
+# | La relación cambia lentamente | Olvido con semivida $\log 2/\log(1/\gamma)$ | La sensibilidad a $\gamma$ y la estabilidad de los hiperparámetros elegidos se reportan en la sección 5.13 |
+# | Calibración monótona | El AUC no cambia al calibrar (proposición 9) | Restricción $a, b \ge 0$ en el código y prueba unitaria |
+#
+# ### De la teoría a la evidencia
+#
+# | Proposición | Qué garantiza | Prueba unitaria | Evidencia empírica |
+# |---|---|---|---|
+# | 1. Convexidad y unicidad | Un solo óptimo por nodo con $\lambda > 0$ | `test_descenso_espejo_alcanza_el_optimo_de_referencia` | Sección 5.7 (mismo óptimo que L-BFGS) |
+# | 2. Actualización exacta y KKT | El punto fijo es el óptimo | `test_converge_con_modelos_correlacionados_y_valores_por_defecto` | Sección 5.7 (brechas por nodo) |
+# | 3. Certificado y convergencia | Error en el objetivo menor que la tolerancia | `test_converge_con_modelos_correlacionados_y_valores_por_defecto` | Sección 5.7 (iteraciones y brechas) |
+# | 4. Casos límite | Las reglas estándar son casos particulares | `test_casos_limite_de_lambda` | Sección 5.8 (ablación) |
+# | 5. Interpretación bayesiana | El encogimiento depende de $\lambda/S_r$ | `test_recupera_los_pesos_de_cada_region` | Sección 5.13 (sensibilidad a $\lambda$ y tamaño de muestra) |
+# | 6 y 8. Capacidad y generalización | La brecha decrece como $\sqrt{\log M / n_r}$ | — | Sección 5.13 (historial reducido) |
+# | 7. Regla propia | Los pesos buscan probabilidades calibradas | `test_calibracion_beta_mejora_un_pool_descalibrado` | Capítulo 6 (Brier, log-loss y ECE) |
+# | 9. Calibración monótona | El AUC no cambia al calibrar | `test_calibracion_beta_es_monotona_y_conserva_el_auc` | Coeficientes $a, b > 0$ en los pliegues calibrados |
+# | 10. Consistencia | Con más datos los pesos convergen al mejor pool local | `test_recupera_los_pesos_de_cada_region` | Sección 5.13 (curva de tamaño de muestra) |
+#
 # ## 5.4 Complejidad
 #
 # Sea $L$ el número de niveles, $K$ el número de iteraciones por nodo (incluidos los retrocesos) y $n$ el
@@ -254,8 +366,9 @@
 # %% [markdown]
 # ## 5.6 Implementación
 #
-# La clase `ApilamientoJerarquicoKL` (`src/original_model.py`) hereda de `BaseEstimator` y `ClassifierMixin`,
-# así que funciona con `clone`, `Pipeline` y la validación anidada. Toda la lógica propia usa solo numpy y
+# La clase `ApilamientoJerarquicoKL` (`src/original_model.py`) hereda de `ClassifierMixin` y `BaseEstimator`
+# (en ese orden, que desde scikit-learn 1.6 es el que conserva la etiqueta de clasificador que usan
+# `is_classifier` y los scorers), así que funciona con `clone`, `Pipeline`, `cross_val_score` y la validación anidada. Toda la lógica propia usa solo numpy y
 # scipy: el objetivo y el gradiente de cada nodo, la actualización multiplicativa cerrada, la brecha de
 # Frank-Wolfe, el recorrido de la jerarquía y la calibración beta por Newton-Raphson ponderado. No hay
 # ningún `import` de un combinador ya hecho. La entrada `X` tiene $M$ columnas de probabilidades fuera de
@@ -283,6 +396,7 @@ warnings.filterwarnings("ignore")
 pio.renderers.default = "notebook_connected"
 import original_model as OM
 import plots as PL
+from figuras import coma
 
 R = "../data/resultados/"
 PL_ORDEN = ["k1", "k2", "k3", "k4", "final"]
@@ -551,3 +665,154 @@ cent = pru.groupby("mercado").apply(lambda g: roc_auc_score(g["interrupcion_t1"]
                                     if g["interrupcion_t1"].nunique() > 1 else np.nan).dropna()
 display(Markdown(f"Por central mayorista, el AJ-KL tiene mayor AUC que XGBoost en {(cent > 0).sum()} de {len(cent)} centrales; "
                  f"la mayor desventaja es {cent.min():+.4f} ({cent.idxmin()}) y la mayor ventaja {cent.max():+.4f} ({cent.idxmax()})."))
+
+# %% [markdown]
+# ## 5.13 Robustez y sensibilidad
+#
+# La guía pide la sensibilidad a los hiperparámetros propios, la estabilidad ante varias semillas y el
+# comportamiento bajo ruido, desbalance y menor tamaño de muestra. `scripts/25_robustez_ajkl.py` lo mide en
+# los cuatro pliegues del bucle externo: parte de los hiperparámetros que eligió TPE y del mismo historial,
+# cambia una sola cosa a la vez y evalúa en el mismo bloque externo $V_k$. Los nueve modelos base no se
+# reentrenan: las perturbaciones caen sobre el combinador, que es la contribución original. Como referencias
+# se reportan el apilamiento global (profundidad 1, el caso particular sin jerarquía) con la misma
+# perturbación y XGBoost sin perturbar.
+
+# %%
+import glob
+
+from plotly.subplots import make_subplots
+
+rob = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(R + "robustez_ajkl/*.parquet"))], ignore_index=True)
+ref = rob[(rob.factor == "referencia") & (rob.modelo == "AJ-KL")].drop_duplicates("pliegue").set_index("pliegue")["auc"]
+ref_ll = rob[(rob.factor == "referencia") & (rob.modelo == "AJ-KL")].drop_duplicates("pliegue").set_index("pliegue")["log_loss"]
+xgb = rob[rob.modelo == "XGBoost (sin perturbar)"].drop_duplicates("pliegue").set_index("pliegue")["auc"]
+display(pd.DataFrame({"AUC AJ-KL (configuración elegida)": ref, "AUC XGBoost": xgb, "ΔAUC": ref - xgb}).round(4))
+
+# %% [markdown]
+# ### Sensibilidad a los hiperparámetros propios
+#
+# Se mueve un hiperparámetro a la vez sobre una malla común a los cuatro pliegues; los demás quedan en el
+# valor elegido. La tabla da el cambio de AUC frente a la configuración elegida de cada pliegue.
+
+# %%
+MALLA = {"lam": [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0], "gamma": [0.98, 0.99, 0.995, 1.0], "profundidad": [1, 2, 3, 4]}
+sens = rob[(rob.experimento == "sensibilidad") & (rob.factor != "referencia")].copy()
+sens = sens[[any(np.isclose(v, m) for m in MALLA[f]) for f, v in zip(sens.factor, sens.valor)]]
+sens["ΔAUC"] = sens["auc"] - sens["pliegue"].map(ref)
+sens["Δ log-loss"] = sens["log_loss"] - sens["pliegue"].map(ref_ll)
+tab_s = sens.groupby(["factor", "valor"]).agg(**{"ΔAUC medio": ("ΔAUC", "mean"), "ΔAUC peor pliegue": ("ΔAUC", "min"),
+                                                 "Δ log-loss medio": ("Δ log-loss", "mean"),
+                                                 "pliegues sobre XGBoost": ("auc", lambda a: int((a.to_numpy() > xgb.loc[sens.loc[a.index, "pliegue"]].to_numpy()).sum()))})
+display(tab_s.round(4))
+fig = make_subplots(rows=1, cols=3, subplot_titles=["Encogimiento λ (escala log)", "Olvido γ", "Profundidad de la jerarquía"])
+for j, (f, eje) in enumerate([("lam", "log"), ("gamma", "linear"), ("profundidad", "linear")], start=1):
+    g = sens[sens.factor == f].groupby("valor")["auc"].agg(["mean", "min", "max"]).reset_index()
+    fig.add_scatter(x=g["valor"], y=g["mean"], mode="lines+markers", line=dict(color=PL.NARANJA, width=2.5),
+                    error_y=dict(type="data", symmetric=False, array=g["max"] - g["mean"], arrayminus=g["mean"] - g["min"],
+                                 color=PL.NARANJA, thickness=1), name="AJ-KL (media y rango de 4 pliegues)", showlegend=j == 1, row=1, col=j)
+    fig.add_hline(y=xgb.mean(), line_dash="dot", line_color=PL.AZUL, row=1, col=j,
+                  annotation_text="XGBoost" if j == 1 else None, annotation_position="bottom right")
+    fig.update_xaxes(type=eje, row=1, col=j)
+fig.update_yaxes(title="AUC en el bloque externo", row=1, col=1)
+fig.update_layout(title="Sensibilidad del AJ-KL a sus hiperparámetros (media de k1-k4)", height=380)
+fig.show()
+
+# %% [markdown]
+# ### Estabilidad ante la semilla
+#
+# El combinador es determinista: con los mismos datos y los mismos hiperparámetros da siempre los mismos
+# pesos (prueba unitaria `test_reproducible`). Lo único aleatorio es la búsqueda TPE, que propone los
+# hiperparámetros. Por eso se repitió la búsqueda completa (24 evaluaciones) con las semillas 43 a 46 y se
+# reajustó el modelo con la configuración elegida en cada caso.
+
+# %%
+sem = rob[rob.experimento == "semillas"].copy()
+base42 = pd.DataFrame([{"pliegue": pl, "valor": 42.0, "modelo": "AJ-KL", "auc": ref[pl], "log_loss": ref_ll[pl],
+                        **joblib.load(R + f"ajkl/{pl}.joblib")["resumen"]["params"]} for pl in ref.index])
+sem = pd.concat([base42, sem[(sem.factor == "semilla")]], ignore_index=True)
+sem["semilla"] = sem["valor"].astype(int)
+display(sem.pivot(index="semilla", columns="pliegue", values="auc").round(4))
+est_sem = sem.groupby("pliegue").agg(**{"AUC medio": ("auc", "mean"), "desviación": ("auc", "std"), "rango": ("auc", lambda a: a.max() - a.min()),
+                                       "semillas sobre XGBoost": ("auc", lambda a: int((a > xgb[sem.loc[a.index, "pliegue"].iat[0]]).sum())),
+                                       "profundidades elegidas": ("profundidad", lambda s: ", ".join(str(int(v)) for v in sorted(set(s)))),
+                                       "λ mínimo": ("lam", "min"), "λ máximo": ("lam", "max")})
+display(est_sem.round(4))
+
+# %% [markdown]
+# ### Ruido, desbalance y tamaño de muestra
+#
+# * **Ruido en las etiquetas:** se invierte al azar el 5, el 10 y el 20 % de las etiquetas del historial con que
+#   se ajusta el combinador (la evaluación en $V_k$ es con las etiquetas reales).
+# * **Ruido en las entradas:** se suma ruido gaussiano $N(0, \sigma^2)$ al logit de las nueve probabilidades base
+#   del historial, con $\sigma$ = 0,1, 0,25 y 0,5.
+# * **Desbalance:** se submuestrean los positivos del historial hasta tasas de 15 % y 8 % (la del panel es 28 %).
+# * **Tamaño de muestra:** se reduce el historial a 5, 10, 20 y 40 mil filas.
+
+# %%
+otros = rob[rob.experimento.isin(["ruido", "desbalance", "muestra"]) & (rob.factor != "referencia")].copy()
+otros["ΔAUC vs AJ-KL sin perturbar"] = otros["auc"] - otros["pliegue"].map(ref)
+otros["ΔAUC vs XGBoost"] = otros["auc"] - otros["pliegue"].map(xgb)
+tab_o = (otros.groupby(["factor", "valor", "modelo"])
+         .agg(**{"AUC medio": ("auc", "mean"), "ΔAUC vs AJ-KL sin perturbar": ("ΔAUC vs AJ-KL sin perturbar", "mean"),
+                 "ΔAUC vs XGBoost": ("ΔAUC vs XGBoost", "mean"), "log-loss media": ("log_loss", "mean"), "pliegues": ("auc", "size")}))
+display(tab_o.round(4))
+m = otros[otros.factor == "filas del historial"].groupby(["valor", "modelo"])["auc"].mean().unstack()
+fig = go.Figure()
+for col, color in [("AJ-KL", PL.NARANJA), ("Apilamiento global", PL.GRIS)]:
+    if col in m:
+        fig.add_scatter(x=m.index, y=m[col], mode="lines+markers", name=col, line=dict(color=color, width=2.5))
+fig.add_hline(y=float(ref.mean()), line_dash="dash", line_color=PL.NARANJA, annotation_text="AJ-KL con todo el historial")
+fig.add_hline(y=float(xgb.mean()), line_dash="dot", line_color=PL.AZUL, annotation_text="XGBoost", annotation_position="bottom right")
+fig.update_xaxes(title="Filas del historial del combinador", type="log").update_yaxes(title="AUC medio en el bloque externo")
+fig.update_layout(title="Tamaño de muestra: AJ-KL frente al apilamiento global con el mismo historial reducido", height=380)
+fig.show()
+
+# %%
+def fila(factor, valor, modelo="AJ-KL"):
+    g = otros[(otros.factor == factor) & np.isclose(otros.valor, valor) & (otros.modelo == modelo)]
+    return g["ΔAUC vs AJ-KL sin perturbar"].mean(), g["ΔAUC vs XGBoost"].mean()
+
+
+lam_peor = tab_s.loc["lam"]["ΔAUC medio"].min()
+otros_peor = min(tab_s.loc["gamma"]["ΔAUC medio"].min(), tab_s.loc["profundidad"]["ΔAUC medio"].min())
+t_lam = tab_s.loc["lam"]
+sobre = lambda v: int(t_lam.loc[np.isclose(t_lam.index, v), "pliegues sobre XGBoost"].iat[0])
+medios = [v for v in t_lam.index if 1 <= v <= 100]
+d_et20, x_et20 = fila("etiquetas invertidas", 0.20)
+d_et20g, _ = fila("etiquetas invertidas", 0.20, "Apilamiento global")
+d_lg50, x_lg50 = fila("ruido en el logit", 0.5)
+d_lg50g, _ = fila("ruido en el logit", 0.5, "Apilamiento global")
+d_b8, x_b8 = fila("tasa de positivos", 0.08)
+d_b8g, _ = fila("tasa de positivos", 0.08, "Apilamiento global")
+ll_b8 = otros[(otros.factor == "tasa de positivos") & np.isclose(otros.valor, 0.08) & (otros.modelo == "AJ-KL")]["log_loss"].mean()
+d_n5, x_n5 = fila("filas del historial", 5000)
+d_n5g, _ = fila("filas del historial", 5000, "Apilamiento global")
+d_n10, _ = fila("filas del historial", 10000)
+d_n10g, _ = fila("filas del historial", 10000, "Apilamiento global")
+signo = lambda v: ("+" if v > 0 else "") + coma(v, 4)
+display(Markdown(
+    f"**Lectura.** (1) *Sensibilidad:* en toda la malla de λ, de 0,01 a 1000, el AUC medio cae a lo sumo "
+    f"{coma(abs(lam_peor), 4)} frente a la configuración elegida, y γ y la profundidad lo mueven todavía menos (a lo sumo "
+    f"{coma(abs(otros_peor), 4)}). El modelo no depende de un ajuste fino de sus hiperparámetros, pero el encogimiento sí "
+    f"importa: en los extremos de la malla la ventaja sobre XGBoost se pierde (queda por encima en {sobre(0.01)} de 4 "
+    f"pliegues con λ = 0,01 y en {sobre(1000.0)} de 4 con λ = 1000), mientras que con λ entre 1 y 100 queda por encima en "
+    f"{min(sobre(v) for v in medios)} a {max(sobre(v) for v in medios)} de 4. "
+    f"(2) *Semillas:* la desviación del AUC entre las cinco semillas es de {coma(est_sem['desviación'].mean(), 4)} en promedio "
+    f"por pliegue aunque cambien los hiperparámetros elegidos, y el AJ-KL queda por encima de XGBoost en "
+    f"{int(est_sem['semillas sobre XGBoost'].sum())} de las {int(sem.groupby('pliegue').size().sum())} combinaciones de "
+    f"pliegue y semilla. "
+    f"(3) *Ruido:* con el 20 % de las etiquetas del historial invertidas, el AUC cae {coma(abs(d_et20), 4)}, más que el del "
+    f"apilamiento global ({coma(abs(d_et20g), 4)}): los nodos pequeños aprenden parte del ruido, que es el riesgo de dar pesos "
+    f"locales. Con ruido en las entradas pasa lo contrario: con σ = 0,5 en el logit el AJ-KL pierde {coma(abs(d_lg50), 4)} y el "
+    f"global {coma(abs(d_lg50g), 4)}, porque promediar entre niveles amortigua el ruido de cada modelo base. "
+    f"(4) *Desbalance:* con 8 % de positivos el AUC cae {coma(abs(d_b8), 4)} y el del apilamiento global {coma(abs(d_b8g), 4)}; como "
+    f"caen igual, la pérdida no viene de la jerarquía sino de entrenar el combinador con menos positivos (pasar de 28 % a 8 % "
+    f"descarta cerca de tres de cada cuatro), y la log-loss sube a {coma(ll_b8, 4)} porque las probabilidades se desplazan hacia "
+    f"la tasa del historial reducido. En la práctica, el combinador debe entrenarse con la prevalencia natural. "
+    f"(5) *Tamaño de muestra:* con 5 mil filas el AJ-KL pierde {coma(abs(d_n5), 4)} de AUC frente a usar todo el historial y "
+    f"el global {coma(abs(d_n5g), 4)}; desde 10 mil filas ambos pierden lo mismo ({coma(abs(d_n10), 4)} y {coma(abs(d_n10g), 4)}). Con "
+    f"muy pocas filas el encogimiento no alcanza a compensar el ruido de los nodos y conviene una jerarquía más corta, "
+    f"que es lo que eligió TPE en el pliegue k1, el de historial más pequeño. "
+    f"El AJ-KL queda por debajo de XGBoost sin perturbar en los escenarios más duros ({signo(x_et20)} con 20 % de etiquetas "
+    f"invertidas, {signo(x_b8)} con 8 % de positivos y {signo(x_n5)} con 5 mil filas): su ventaja, que es pequeña, depende de "
+    f"tener un historial suficiente, limpio y con la prevalencia natural."))

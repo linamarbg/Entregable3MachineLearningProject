@@ -10,15 +10,22 @@ import plotly.io as pio
 from plotly.subplots import make_subplots
 from sklearn.metrics import confusion_matrix, precision_recall_curve, roc_auc_score, roc_curve
 
-AZUL_OSC, AZUL, NARANJA, ROJO, GRIS = "#0b3d6e", "#1c7ed6", "#e8590c", "#c92a2a", "#868e96"
-PALETA = [AZUL_OSC, AZUL, NARANJA, ROJO, GRIS]
+# Paleta de cinco colores tomada del tema (campo, carretera y cosecha): verde montaña para la estructura y
+# los títulos, azul río para los datos y los benchmarks, ámbar cosecha para el modelo original, rojo tomate
+# para las interrupciones y gris piedra para las referencias.
+VERDE, AZUL_RIO, AMBAR, TOMATE, PIEDRA = "#1f5135", "#2b6f8e", "#e39b2d", "#c8423b", "#7c858d"
+PALETA = [VERDE, AZUL_RIO, AMBAR, TOMATE, PIEDRA]
+AZUL_OSC, AZUL, NARANJA, ROJO, GRIS = PALETA     # nombres por función que usan los cuadernos del libro
+ESCALA_VERDE = [[0, "#f7f4ec"], [0.5, "#8fbf9a"], [1, VERDE]]
+ESCALA_AMBAR = [[0, "#fbf8f1"], [0.5, "#f1c77f"], [1, "#b56d0e"]]
+ESCALA_RIESGO = ["#4e9a6a", "#c9b458", AMBAR, TOMATE]      # tasa de interrupción baja → alta
 EVENTOS = [("2020-03-23", "2020-05-31", "Confinamiento"), ("2021-04-28", "2021-06-15", "Paro nacional")]
 
 pio.templates["proyecto"] = go.layout.Template(layout=go.Layout(
-    font=dict(family="Inter, Segoe UI, Helvetica, Arial, sans-serif", size=12, color="#212529"),
+    font=dict(family="Inter, Segoe UI, Helvetica, Arial, sans-serif", size=12, color="#24302a"),
     paper_bgcolor="white", plot_bgcolor="white", colorway=PALETA,
-    xaxis=dict(gridcolor="#eef0f2", zerolinecolor="#dee2e6", linecolor="#ced4da", automargin=True),
-    yaxis=dict(gridcolor="#eef0f2", zerolinecolor="#dee2e6", linecolor="#ced4da", automargin=True),
+    xaxis=dict(gridcolor="#efece4", zerolinecolor="#dcd6c8", linecolor="#cfc8b6", automargin=True),
+    yaxis=dict(gridcolor="#efece4", zerolinecolor="#dcd6c8", linecolor="#cfc8b6", automargin=True),
     margin=dict(l=55, r=20, t=70, b=50), hoverlabel=dict(font_size=12),
     title=dict(x=0.01, xanchor="left", font=dict(size=15)),
     legend=dict(orientation="h", yanchor="bottom", y=1.01, x=0, font=dict(size=11)),
@@ -99,7 +106,7 @@ def bivariado(m: pd.DataFrame, x: str, y: str, color: str, etiquetas: dict) -> g
     else:
         fig = px.scatter(d, x=x, y=y, color=color, opacity=0.45,
                          color_discrete_sequence=[GRIS, ROJO, AZUL, NARANJA, AZUL_OSC],
-                         color_continuous_scale="Blues")
+                         color_continuous_scale=ESCALA_VERDE)
     fig.update_layout(title=f"«{etiquetas.get(y, y)}» frente a «{etiquetas.get(x, x)}» (6 000 puntos al azar)", height=420)
     fig.update_xaxes(title=etiquetas.get(x, x)).update_yaxes(title=etiquetas.get(y, y))
     return fig
@@ -110,7 +117,7 @@ def correlacion(m: pd.DataFrame, variables: list[str], etiquetas: dict) -> go.Fi
         return vacia()
     c = m[variables].corr(method="spearman")
     nombres = [etiquetas.get(v, v) for v in variables]
-    fig = go.Figure(go.Heatmap(z=c.values, x=nombres, y=nombres, zmin=-1, zmax=1, colorscale="RdBu_r",
+    fig = go.Figure(go.Heatmap(z=c.values, x=nombres, y=nombres, zmin=-1, zmax=1, colorscale=[[0, AZUL_RIO], [0.5, "#f7f4ec"], [1, TOMATE]],
                                colorbar=dict(title="ρ"), hovertemplate="%{y}<br>%{x}<br>ρ = %{z:.2f}<extra></extra>"))
     fig.update_layout(title="Correlación de Spearman entre variables numéricas", height=620)
     fig.update_xaxes(tickangle=45, tickfont=dict(size=9)).update_yaxes(tickfont=dict(size=9), autorange="reversed")
@@ -124,7 +131,7 @@ def mapa_faltantes(falt: pd.DataFrame, etiquetas: dict) -> go.Figure:
     f = f[(f > 0).any(axis=1)]
     if f.empty:
         return vacia("Ninguna variable del modelo tiene valores faltantes")
-    fig = go.Figure(go.Heatmap(z=f.values, x=f.columns, y=[etiquetas.get(v, v) for v in f.index], colorscale="Oranges",
+    fig = go.Figure(go.Heatmap(z=f.values, x=f.columns, y=[etiquetas.get(v, v) for v in f.index], colorscale=ESCALA_AMBAR,
                                colorbar=dict(title="%"), hovertemplate="%{y}<br>%{x}: %{z:.2f} % faltante<extra></extra>"))
     fig.update_layout(title="Valores faltantes por variable y año (% de filas)", height=360)
     fig.update_xaxes(title="Año de la semana objetivo")
@@ -211,7 +218,7 @@ def matriz_confusion(y, p, umbral: float, nombre: str) -> go.Figure:
     pct = 100 * cm / cm.sum()
     texto = [[f"{cm[i, j]:,}<br>({pct[i, j]:.1f} %)".replace(",", ".") for j in range(2)] for i in range(2)]
     fig = go.Figure(go.Heatmap(z=cm, x=["Predice: no", "Predice: sí"], y=["Real: no", "Real: sí"], text=texto,
-                               texttemplate="%{text}", colorscale="Blues", showscale=False,
+                               texttemplate="%{text}", colorscale=ESCALA_VERDE, showscale=False,
                                hovertemplate="%{y} / %{x}: %{z:,}<extra></extra>"))
     fig.update_layout(title=f"{nombre}: interrupción en t+1<br><sup>umbral {umbral:.3f} (máximo F1 interno)</sup>", height=380,
                       margin=dict(l=70, r=10, t=80, b=40))
@@ -273,8 +280,61 @@ def aportes_base(pesos, probs, nombres) -> go.Figure:
 def mapa_pesos(t: pd.DataFrame) -> go.Figure:
     """Mapa de calor de los pesos del combinador por central (filas) y modelo base (columnas)."""
     m = t.set_index("central")
-    fig = go.Figure(go.Heatmap(z=m.values, x=m.columns, y=m.index, colorscale="Oranges", zmin=0,
+    fig = go.Figure(go.Heatmap(z=m.values, x=m.columns, y=m.index, colorscale=ESCALA_AMBAR, zmin=0,
                                colorbar=dict(title="peso"), hovertemplate="%{y}<br>%{x}: %{z:.3f}<extra></extra>"))
     fig.update_layout(title="Pesos del pool por central mayorista", height=max(420, 18 * len(m)))
     fig.update_xaxes(tickangle=30).update_yaxes(tickfont=dict(size=10))
+    return fig
+
+
+# ------------------------------------------------------------------------------- mapa de corredores
+CLASES_RIESGO = [(0.0, 0.25, "menos de 25 %"), (0.25, 0.50, "25 % a 50 %"), (0.50, 0.75, "50 % a 75 %"), (0.75, 1.01, "75 % o más")]
+
+
+def mapa_corredores(corr: pd.DataFrame, cent: pd.DataFrame, central: str | None = None, min_semanas: int = 26) -> go.Figure:
+    """Mapa de los corredores municipio de origen → central mayorista.
+
+    Cada línea es un corredor con al menos `min_semanas` semanas observadas, coloreado por su tasa histórica de
+    interrupción (cuatro clases). Los círculos verdes son las centrales, con área proporcional a las toneladas
+    del último año; los puntos son los municipios de origen.
+    """
+    d = corr[corr["semanas"] >= min_semanas]
+    c = cent
+    if central:
+        d, c = d[d["mercado"] == central], cent[cent["mercado"] == central]
+    fig = go.Figure()
+    for (lo, hi, etiqueta), color in zip(CLASES_RIESGO, ESCALA_RIESGO):
+        g = d[(d["tasa"] >= lo) & (d["tasa"] < hi)]
+        if g.empty:
+            continue
+        n = len(g)
+        lon = np.c_[g["lon_o"], g["lon_m"], np.full(n, np.nan)].ravel()
+        lat = np.c_[g["lat_o"], g["lat_m"], np.full(n, np.nan)].ravel()
+        fig.add_trace(go.Scattermap(lon=lon, lat=lat, mode="lines", line=dict(width=1.4 if central else 0.8, color=color),
+                                    opacity=0.75 if central else 0.45, name=f"Interrupción {etiqueta} ({n})",
+                                    hoverinfo="skip", legendgroup=etiqueta))
+        texto = (g["mpio_origen"].str.title() + " (" + g["depto_origen"].str.title() + ") → " + g["mercado"]
+                 + "<br>tasa de interrupción " + (100 * g["tasa"]).round(1).astype(str) + " %"
+                 + "<br>abastecimiento medio " + (g["t_dia"] / 1000).round(2).astype(str) + " t/día · "
+                 + g["dist_km"].round(0).astype(int).astype(str) + " km · " + g["semanas"].astype(str) + " semanas"
+                 + np.where(g["pdet"] == 1, "<br>municipio PDET", ""))
+        fig.add_trace(go.Scattermap(lon=g["lon_o"], lat=g["lat_o"], mode="markers", marker=dict(size=5, color=color),
+                                    text=texto, hovertemplate="%{text}<extra></extra>", showlegend=False, legendgroup=etiqueta))
+    ton = c["toneladas_ultimo_anio"].fillna(0)
+    fig.add_trace(go.Scattermap(lon=c["lon"], lat=c["lat"], mode="markers", name="Central mayorista (área ∝ toneladas)",
+                                marker=dict(size=8 + 34 * np.sqrt(ton / max(ton.max(), 1)), color=VERDE, opacity=0.9),
+                                text=c["mercado"] + "<br>" + c["corredores"].astype(str) + " corredores · tasa de interrupción "
+                                + (100 * c["tasa"]).round(1).astype(str) + " %<br>" + (ton / 1e3).round(0).astype(int).astype(str)
+                                + " mil toneladas en el último año",
+                                hovertemplate="%{text}<extra></extra>"))
+    centro, zoom = dict(lat=4.3, lon=-73.6), 4.45                   # Colombia completa
+    if central and len(d):
+        # encuadre de la central y sus orígenes: con teselas de 512 px, el zoom 5 muestra unos 12° de latitud en 560 px
+        lats, lons = np.r_[d["lat_o"], c["lat"]], np.r_[d["lon_o"], c["lon"]]
+        centro = dict(lat=float((lats.min() + lats.max()) / 2), lon=float((lons.min() + lons.max()) / 2))
+        zoom = float(np.clip(np.log2(11 / max(np.ptp(lats), 0.75 * np.ptp(lons), 0.5)) + 5, 4.4, 9))
+    fig.update_layout(map=dict(style="carto-positron", center=centro, zoom=zoom),
+                      height=560, margin=dict(l=0, r=0, t=10, b=0),
+                      legend=dict(orientation="v", x=0.01, y=0.99, xanchor="left", yanchor="top",
+                                  bgcolor="rgba(255,255,255,0.85)", bordercolor="#dcd6c8", borderwidth=1, font=dict(size=11)))
     return fig

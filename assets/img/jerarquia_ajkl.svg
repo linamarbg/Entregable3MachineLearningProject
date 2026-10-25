@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" role="img" aria-labelledby="ja-t ja-d">
+  <title id="ja-t">Jerarquía del modelo AJ-KL</title>
+  <desc id="ja-d">Diagrama propio: el país arriba, las centrales mayoristas, las combinaciones central por grupo de alimentos y los corredores abajo. Cada nodo tiene una barra con los pesos de los modelos base; las flechas punteadas indican que cada nodo se encoge hacia los pesos de su padre con la divergencia KL.</desc>
+  <defs>
+    <marker id="ja-flecha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#e39b2d"/>
+    </marker>
+  </defs>
+  <rect width="640" height="300" rx="18" fill="#fbf8f1"/>
+  <!-- etiquetas de nivel -->
+  <g font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#7c858d">
+    <text x="16" y="44">PAÍS</text><text x="16" y="120">CENTRAL</text><text x="16" y="196">CENTRAL × GRUPO</text><text x="16" y="270">CORREDOR</text>
+  </g>
+  <!-- aristas -->
+  <g stroke="#c9c2b0" stroke-width="2" fill="none">
+    <path d="M330 52 C 330 80 200 76 200 102"/><path d="M330 52 L330 102"/><path d="M330 52 C 330 80 460 76 460 102"/>
+    <path d="M200 128 C 200 156 150 152 150 178"/><path d="M200 128 C 200 156 250 152 250 178"/>
+    <path d="M460 128 C 460 156 410 152 410 178"/><path d="M460 128 C 460 156 510 152 510 178"/>
+    <path d="M150 204 C 150 230 120 226 120 250"/><path d="M150 204 C 150 230 180 226 180 250"/>
+    <path d="M250 204 L250 250"/><path d="M410 204 L410 250"/>
+    <path d="M510 204 C 510 230 480 226 480 250"/><path d="M510 204 C 510 230 540 226 540 250"/>
+  </g>
+  <!-- encogimiento hacia el padre -->
+  <g stroke="#e39b2d" stroke-width="2.2" stroke-dasharray="5 4" fill="none" marker-end="url(#ja-flecha)">
+    <path d="M482 104 C 500 80 420 54 356 46"/>
+    <path d="M528 180 C 548 156 500 132 482 126"/>
+  </g>
+  <g font-family="Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#b97712">
+    <text x="512" y="70">λ·KL(w ‖ w padre)</text>
+  </g>
+  <!-- nodo país -->
+  <g transform="translate(330 38)">
+    <circle r="18" fill="#1f5135"/>
+    <path d="M0 -9 C -5 -9 -8 -5 -8 -1 C -8 5 0 11 0 11 C 0 11 8 5 8 -1 C 8 -5 5 -9 0 -9 Z" fill="#ffffff"/>
+    <circle cy="-2" r="3" fill="#1f5135"/>
+  </g>
+  <!-- barras de pesos (tres modelos: XGBoost, logística, otros) -->
+  <g transform="translate(356 30)">
+    <rect width="60" height="10" rx="2" fill="#e8e3d6"/>
+    <rect width="27" height="10" fill="#2b6f8e"/><rect x="27" width="18" height="10" fill="#e39b2d"/><rect x="45" width="15" height="10" fill="#7c858d"/>
+  </g>
+  <!-- centrales -->
+  <g id="ja-central">
+    <g transform="translate(200 115)">
+      <rect x="-16" y="-6" width="32" height="18" fill="#f7f4ec" stroke="#c8423b" stroke-width="2"/>
+      <polygon points="-20,-5 0,-17 20,-5" fill="#c8423b"/>
+    </g>
+    <g transform="translate(330 115)">
+      <rect x="-16" y="-6" width="32" height="18" fill="#f7f4ec" stroke="#c8423b" stroke-width="2"/>
+      <polygon points="-20,-5 0,-17 20,-5" fill="#c8423b"/>
+    </g>
+    <g transform="translate(460 115)">
+      <rect x="-16" y="-6" width="32" height="18" fill="#f7f4ec" stroke="#c8423b" stroke-width="2"/>
+      <polygon points="-20,-5 0,-17 20,-5" fill="#c8423b"/>
+    </g>
+  </g>
+  <g transform="translate(226 110)"><rect width="50" height="8" rx="2" fill="#2b6f8e"/><rect x="0" width="16" height="8" fill="#2b6f8e"/><rect x="16" width="22" height="8" fill="#e39b2d"/><rect x="38" width="12" height="8" fill="#7c858d"/></g>
+  <g transform="translate(486 110)"><rect width="50" height="8" fill="#2b6f8e"/><rect x="30" width="12" height="8" fill="#e39b2d"/><rect x="42" width="8" height="8" fill="#7c858d"/></g>
+  <!-- central × grupo: guacales -->
+  <g fill="#c98b4e">
+    <rect x="138" y="182" width="24" height="16" rx="2"/><rect x="238" y="182" width="24" height="16" rx="2"/>
+    <rect x="398" y="182" width="24" height="16" rx="2"/><rect x="498" y="182" width="24" height="16" rx="2"/>
+  </g>
+  <g fill="#c8423b"><circle cx="144" cy="181" r="4"/><circle cx="152" cy="180" r="4"/><circle cx="404" cy="181" r="4"/></g>
+  <g fill="#3f6e2a"><circle cx="244" cy="181" r="4"/><circle cx="252" cy="180" r="4"/><circle cx="512" cy="181" r="4"/></g>
+  <g fill="#f2c94c"><circle cx="160" cy="181" r="3.5"/><circle cx="414" cy="180" r="4"/><circle cx="504" cy="180" r="4"/></g>
+  <g transform="translate(528 186)"><rect width="40" height="7" fill="#2b6f8e"/><rect x="30" width="6" height="7" fill="#e39b2d"/><rect x="36" width="4" height="7" fill="#7c858d"/></g>
+  <!-- corredores: camiones -->
+  <g id="ja-camiones" fill="#2b6f8e">
+    <g transform="translate(108 252)"><rect width="16" height="10" rx="1.5" fill="#8a5a3c"/><rect x="16" y="2" width="8" height="8" rx="1.5"/><circle cx="5" cy="12" r="2.6" fill="#33383d"/><circle cx="19" cy="12" r="2.6" fill="#33383d"/></g>
+    <g transform="translate(168 252)"><rect width="16" height="10" rx="1.5" fill="#8a5a3c"/><rect x="16" y="2" width="8" height="8" rx="1.5"/><circle cx="5" cy="12" r="2.6" fill="#33383d"/><circle cx="19" cy="12" r="2.6" fill="#33383d"/></g>
+    <g transform="translate(238 252)"><rect width="16" height="10" rx="1.5" fill="#8a5a3c"/><rect x="16" y="2" width="8" height="8" rx="1.5"/><circle cx="5" cy="12" r="2.6" fill="#33383d"/><circle cx="19" cy="12" r="2.6" fill="#33383d"/></g>
+    <g transform="translate(398 252)"><rect width="16" height="10" rx="1.5" fill="#8a5a3c"/><rect x="16" y="2" width="8" height="8" rx="1.5"/><circle cx="5" cy="12" r="2.6" fill="#33383d"/><circle cx="19" cy="12" r="2.6" fill="#33383d"/></g>
+    <g transform="translate(468 252)"><rect width="16" height="10" rx="1.5" fill="#8a5a3c"/><rect x="16" y="2" width="8" height="8" rx="1.5"/><circle cx="5" cy="12" r="2.6" fill="#33383d"/><circle cx="19" cy="12" r="2.6" fill="#33383d"/></g>
+    <g transform="translate(528 252)"><rect width="16" height="10" rx="1.5" fill="#8a5a3c"/><rect x="16" y="2" width="8" height="8" rx="1.5"/><circle cx="5" cy="12" r="2.6" fill="#33383d"/><circle cx="19" cy="12" r="2.6" fill="#33383d"/></g>
+  </g>
+  <!-- leyenda -->
+  <g font-family="Inter, Arial, sans-serif" font-size="10.5" fill="#495057" transform="translate(16 286)">
+    <rect y="-8" width="10" height="8" fill="#2b6f8e"/><text x="14" y="0">XGBoost</text>
+    <rect x="72" y="-8" width="10" height="8" fill="#e39b2d"/><text x="86" y="0">Regresión logística</text>
+    <rect x="196" y="-8" width="10" height="8" fill="#7c858d"/><text x="210" y="0">otros modelos base: cada barra es el vector de pesos w del nodo</text>
+  </g>
+</svg>

@@ -272,7 +272,7 @@ def platt_newton(z: np.ndarray, y: np.ndarray, iteraciones: int = 50) -> tuple[f
 # ----------------------------------------------------------------------------------------------
 # Estimador compatible con scikit-learn
 # ----------------------------------------------------------------------------------------------
-class EnsambleUmbralesLatentes(BaseEstimator, ClassifierMixin):
+class EnsambleUmbralesLatentes(ClassifierMixin, BaseEstimator):
     """Ensamble Jerárquico de Umbrales Latentes (EJUL).
 
     Parameters

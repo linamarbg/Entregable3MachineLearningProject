@@ -3,6 +3,10 @@
 set -e
 cd "$(dirname "$0")/.."
 PY=${PY:-/Users/cjmolina/.venvs/ml-e2/bin/python}
+# el kernel «ml-e2» que usan los cuadernos apunta al Python elegido
+$PY -m ipykernel install --user --name ml-e2 --display-name "Python (ml-e2)" > /dev/null
+# en macOS sin libomp de Homebrew, XGBoost y LightGBM usan el OpenMP de scikit-learn (lo hereda el kernel)
+export DYLD_LIBRARY_PATH="$($PY -c 'import os, sklearn; print(os.path.dirname(sklearn.__file__))')/.dylibs${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
 # el capítulo 5 une la teoría (markdown) y la parte práctica (código)
 $PY - <<'P'
 from pathlib import Path

@@ -92,8 +92,9 @@ tenga.
 **Calibración.** Un pool lineal de pronósticos calibrados no está calibrado salvo que todos coincidan
 {cite}`ranjan2010combining`: queda subdisperso, con probabilidades encogidas hacia el centro. Por eso,
 después del pool se ajusta una calibración beta $\sigma(a \log q - b\log(1 - q) + c)$ {cite}`kull2017beta`
-por Newton-Raphson ponderado con los mismos pesos de olvido. Es una transformación monótona: no cambia el
-AUC y se activa solo si mejora la log-loss en la validación interna.
+por Newton-Raphson ponderado con los mismos pesos de olvido, con la restricción $a, b \ge 0$: si un
+coeficiente sale negativo, se reajusta sin ese rasgo. Con esa restricción es una transformación creciente
+(proposición 9), así que no cambia el AUC; se activa solo si mejora la log-loss en la validación interna.
 
 ## 5.3 Propiedades
 
@@ -201,6 +202,117 @@ el lema de Massart para clases finitas con valores en $[0,1]$ da $\sqrt{2 \log M
 La cota crece con el logaritmo del número de modelos y no con el número de variables: el combinador tiene muy
 poca capacidad por nodo, y la jerarquía con encogimiento evita que los nodos pequeños (con $n_r$ chico y
 cota grande) se aparten mucho de su padre. Esa es la justificación de usar nodos tan finos como el corredor.
+
+### Fundamento estadístico
+
+Las proposiciones 1 a 6 son de optimización y de capacidad. Las cuatro siguientes responden a las
+preguntas estadísticas: por qué la pérdida es la log-loss, cuánto puede empeorar el combinador fuera de
+muestra, qué garantiza la calibración y hacia dónde convergen los pesos cuando hay más datos.
+
+**Proposición 7 (la log-loss es una regla de puntuación estrictamente propia).** Si $Y \sim
+\mathrm{Bernoulli}(\pi)$, la pérdida esperada $L_\pi(q) = \mathbb{E}[\ell(Y, q)] = -\pi\log q - (1-\pi)\log(1-q)$
+tiene un único minimizador en $q = \pi$, y el exceso de pérdida es una divergencia KL:
+
+$$
+L_\pi(q) - L_\pi(\pi) = \mathrm{KL}\big(\mathrm{Ber}(\pi)\,\|\,\mathrm{Ber}(q)\big) \ge 0 .
+$$ (eq-propia)
+
+*Demostración.* $L_\pi(q) - L_\pi(\pi) = \pi\log(\pi/q) + (1-\pi)\log\{(1-\pi)/(1-q)\}$, que es la definición de
+$\mathrm{KL}(\mathrm{Ber}(\pi)\|\mathrm{Ber}(q))$; la KL es no negativa y vale cero solo si $q = \pi$
+(desigualdad de Gibbs). $\square$
+
+Por eso el combinador minimiza la log-loss y no el error de clasificación: una regla estrictamente propia
+{cite}`gneiting2007strictly` premia decir la probabilidad verdadera, de modo que los pesos que minimizan
+{eq}`eq-objetivo-ajkl` buscan probabilidades calibradas, no solo un buen orden. Además, la log-loss es la
+menos log-verosimilitud de Bernoulli, que es lo que hace posible la lectura bayesiana de la proposición 5, y su
+exceso es una KL: el mismo lenguaje de la penalización hacia el padre.
+
+**Proposición 8 (cota de generalización del nodo).** Supóngase que las $n_r$ filas del nodo son independientes
+e idénticamente distribuidas y sea $R(w) = \mathbb{E}[\ell(Y, w^\top p(X))]$ el riesgo y $\hat R(w)$ su media
+muestral. Con probabilidad al menos $1 - \delta$, simultáneamente para todo $w \in \Delta^M$,
+
+$$
+R(w) \le \hat R(w) + \frac{2}{\varepsilon}\sqrt{\frac{2\log M}{n_r}} + \log\frac{1}{\varepsilon}\,\sqrt{\frac{\log(1/\delta)}{2\,n_r}} .
+$$ (eq-generalizacion)
+
+*Demostración.* Con $q \in [\varepsilon, 1-\varepsilon]$, $|\partial \ell / \partial q| = |q - y| / \{q(1-q)\} \le
+1/\varepsilon$, así que cada $q \mapsto \ell(y_i, q)$ es $(1/\varepsilon)$-lipschitziana, y $0 \le \ell \le
+\log(1/\varepsilon)$. La cota uniforme de Rademacher {cite}`bartlett2002rademacher,mohri2018foundations`
+(teorema 3.3 de Mohri et al.) da $R(w) \le \hat R(w) + 2\,\mathfrak{R}_{n_r}(\ell\circ\mathcal{F}_r) +
+\log(1/\varepsilon)\sqrt{\log(1/\delta)/(2n_r)}$; el lema de contracción de Ledoux y Talagrand
+{cite}`ledoux1991probability` da $\mathfrak{R}_{n_r}(\ell\circ\mathcal{F}_r) \le (1/\varepsilon)\,
+\mathfrak{R}_{n_r}(\mathcal{F}_r)$, y la proposición 6 acota $\mathfrak{R}_{n_r}(\mathcal{F}_r) \le
+\sqrt{2\log M/n_r}$. $\square$
+
+La cota no depende del número de variables del problema, solo de $M = 9$ y de $n_r$; con el $\varepsilon$
+nominal de $10^{-4}$ es holgada en términos absolutos (las probabilidades reales del pool están lejos de
+$\varepsilon$), pero muestra la escala: el término de capacidad decrece como $1/\sqrt{n_r}$, de modo que en los
+nodos con pocas filas la diferencia entre el riesgo empírico y el poblacional puede ser grande, y ahí actúa el
+encogimiento (proposición 5). Las corredor-semanas no son independientes (comparten corredor y semana); bajo
+dependencia débil, $n_r$ debe leerse como un tamaño de muestra efectivo menor, y por eso la evaluación no se
+apoya en esta cota sino en la validación hacia adelante del capítulo 6.
+
+**Proposición 9 (la calibración beta restringida conserva el orden y el AUC).** Sea
+$g(q) = \sigma(c + a\log q - b\log(1-q))$ con $a, b \ge 0$ y $a + b > 0$. Entonces $g$ es estrictamente creciente
+en $(0, 1)$ y el AUC de $g(q)$ es igual al de $q$.
+
+*Demostración.* $g'(q) = g(q)\{1 - g(q)\}\,\{a/q + b/(1-q)\} > 0$. El AUC es la probabilidad de que un positivo
+reciba un puntaje mayor que un negativo, que depende solo del orden de los puntajes, y una transformación
+estrictamente creciente no cambia el orden. $\square$
+
+Sin la restricción el mapa deja de ser creciente: si $a$ y $b$ tienen signos distintos, $a/q + b/(1-q)$ cambia de
+signo en $(0, 1)$ y el mapa no es monótono; si ambos son negativos, es decreciente e invierte el orden. La implementación
+impone $a, b \ge 0$ como recomiendan {cite:t}`kull2017beta`; en los pliegues donde la validación interna eligió
+calibrar (k1, k3 y k4) los coeficientes estimados fueron $a \in [1{,}09;\, 1{,}19]$ y $b \in [0{,}77;\, 0{,}99]$, es
+decir, la restricción no se activó y los resultados reportados no cambian. La prueba unitaria
+`test_calibracion_beta_es_monotona_y_conserva_el_auc` construye datos en forma de U donde el ajuste libre da
+$a < 0$ y verifica que el restringido es monótono y deja el AUC intacto.
+
+**Proposición 10 (consistencia de los pesos del nodo).** Fíjense el nodo $r$, los modelos base, $\gamma = 1$ y
+$\lambda$. Si las filas del nodo son independientes con la misma distribución, $R(w)$ tiene un único minimizador
+$w_r^\star$ en $\Delta^M$ (lo que ocurre, por ejemplo, si la matriz de segundos momentos de $p(X)$ es definida
+positiva) y el padre tiene soporte completo, entonces el estimador $\hat w_r$ de {eq}`eq-objetivo-ajkl` converge
+en probabilidad a $w_r^\star$ cuando $n_r \to \infty$.
+
+*Demostración.* El problema del nodo es minimizar $\hat F_n(w) = \hat R(w) + (\lambda/n_r)\mathrm{KL}(w\|w_{\pi(r)})$.
+Como $0 \le \mathrm{KL}(w\|w_{\pi(r)}) \le \log(1/\min_m w_{\pi(r),m}) < \infty$ en el símplex, el segundo término
+tiende a cero uniformemente. La proposición 8 (o la ley uniforme de los grandes números para una clase con
+complejidad de Rademacher que tiende a cero) da $\sup_{w \in \Delta^M} |\hat R(w) - R(w)| \to 0$ en probabilidad.
+Entonces $\sup_w |\hat F_n(w) - R(w)| \to 0$; como $\Delta^M$ es compacto, $R$ es continua y su minimizador es
+único, el teorema de consistencia de los estimadores extremos {cite}`newey1994large` (teorema 2.1) da
+$\hat w_r \to w_r^\star$. $\square$
+
+Las proposiciones 5 y 10 son las dos caras del mismo compromiso entre sesgo y varianza: con pocos datos el
+prior domina y el nodo copia a su padre (poca varianza, posible sesgo); con muchos datos el encogimiento se
+desvanece ($\mu_r = \lambda / S_r \to 0$) y los pesos convergen a la mejor combinación lineal de ese nodo. Con
+$\gamma < 1$ el tamaño efectivo $S_r$ queda acotado por el número de filas por semana dividido entre
+$1 - \gamma$: es una decisión de diseño, no un descuido, porque el objetivo es seguir una relación que cambia
+con el tiempo, no estimar una fija.
+
+### Supuestos y cómo se verifican
+
+| Supuesto | Dónde se usa | Cómo se verifica o se mitiga |
+|---|---|---|
+| Las probabilidades base son fuera de muestra | Toda la formulación: si el combinador ve predicciones ajustadas a sus propias filas, premia al modelo más sobreajustado | El historial del pliegue $k$ son predicciones de bloques externos anteriores (en k1, de ventanas internas); ninguna semana es posterior al corte (capítulo 6) |
+| La jerarquía es anidada | Proposiciones 1 a 5 (cada nodo tiene un solo padre) | El código del corredor incluye la central y el grupo, así que el anidamiento se cumple por construcción |
+| $p_i \in [\varepsilon, 1-\varepsilon]$ | Proposiciones 3 y 8 (gradiente acotado y pérdida lipschitziana) | Recorte explícito en la implementación |
+| Filas independientes dentro del nodo | Proposiciones 8 y 10 | No se cumple estrictamente; por eso la evidencia es la validación hacia adelante y las pruebas con bloques de semana y varianza HAC (capítulo 6), no la cota |
+| La relación cambia lentamente | Olvido con semivida $\log 2/\log(1/\gamma)$ | La sensibilidad a $\gamma$ y la estabilidad de los hiperparámetros elegidos se reportan en la sección 5.13 |
+| Calibración monótona | El AUC no cambia al calibrar (proposición 9) | Restricción $a, b \ge 0$ en el código y prueba unitaria |
+
+### De la teoría a la evidencia
+
+| Proposición | Qué garantiza | Prueba unitaria | Evidencia empírica |
+|---|---|---|---|
+| 1. Convexidad y unicidad | Un solo óptimo por nodo con $\lambda > 0$ | `test_descenso_espejo_alcanza_el_optimo_de_referencia` | Sección 5.7 (mismo óptimo que L-BFGS) |
+| 2. Actualización exacta y KKT | El punto fijo es el óptimo | `test_converge_con_modelos_correlacionados_y_valores_por_defecto` | Sección 5.7 (brechas por nodo) |
+| 3. Certificado y convergencia | Error en el objetivo menor que la tolerancia | `test_converge_con_modelos_correlacionados_y_valores_por_defecto` | Sección 5.7 (iteraciones y brechas) |
+| 4. Casos límite | Las reglas estándar son casos particulares | `test_casos_limite_de_lambda` | Sección 5.8 (ablación) |
+| 5. Interpretación bayesiana | El encogimiento depende de $\lambda/S_r$ | `test_recupera_los_pesos_de_cada_region` | Sección 5.13 (sensibilidad a $\lambda$ y tamaño de muestra) |
+| 6 y 8. Capacidad y generalización | La brecha decrece como $\sqrt{\log M / n_r}$ | — | Sección 5.13 (historial reducido) |
+| 7. Regla propia | Los pesos buscan probabilidades calibradas | `test_calibracion_beta_mejora_un_pool_descalibrado` | Capítulo 6 (Brier, log-loss y ECE) |
+| 9. Calibración monótona | El AUC no cambia al calibrar | `test_calibracion_beta_es_monotona_y_conserva_el_auc` | Coeficientes $a, b > 0$ en los pliegues calibrados |
+| 10. Consistencia | Con más datos los pesos convergen al mejor pool local | `test_recupera_los_pesos_de_cada_region` | Sección 5.13 (curva de tamaño de muestra) |
 
 ## 5.4 Complejidad
 

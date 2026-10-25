@@ -9,8 +9,8 @@ from sklearn.base import clone
 from sklearn.metrics import log_loss, roc_auc_score
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from original_model import (ApilamientoJerarquicoKL, brecha_fw, descenso_espejo, kl,  # noqa: E402
-                            logistica_newton_ponderada, objetivo_nodo)
+from original_model import (ApilamientoJerarquicoKL, brecha_fw, calibracion_beta, descenso_espejo, kl,  # noqa: E402
+                            logistica_newton_ponderada, objetivo_nodo, rasgos_beta)
 
 
 def datos_regiones(n=6000, semilla=0):
@@ -120,6 +120,32 @@ def test_calibracion_beta_mejora_un_pool_descalibrado():
     assert log_loss(y[3000:], cal.predict_proba(P[3000:])[:, 1]) < log_loss(y[3000:], cruda.predict_proba(P[3000:])[:, 1]) - 0.05
 
 
+def test_calibracion_beta_es_monotona_y_conserva_el_auc():
+    """Proposición 9: con a, b ≥ 0 el mapa es creciente. Datos en U, donde el ajuste libre daría a < 0."""
+    rng = np.random.default_rng(5)
+    q = rng.uniform(0.02, 0.98, 6000)
+    y = (rng.random(6000) < np.where((q < 0.15) | (q > 0.6), 0.8, 0.2)).astype(float)
+    libre = logistica_newton_ponderada(rasgos_beta(q), y, np.ones_like(q))
+    assert libre[1] < 0                                     # sin restricción el mapa no sería monótono
+    coef = calibracion_beta(q, y, np.ones_like(q))
+    assert coef is not None and np.all(coef[1:] >= 0)
+    malla = np.linspace(0.01, 0.99, 500)
+    z = coef[0] + rasgos_beta(malla) @ coef[1:]
+    assert np.all(np.diff(z) >= -1e-12)
+    m = ApilamientoJerarquicoKL(profundidad=1, calibrar=True).fit(np.c_[q, q], y)
+    assert roc_auc_score(y, m.predict_proba(np.c_[q, q])[:, 1]) == pytest.approx(roc_auc_score(y, q), abs=1e-12)
+
+
+def test_es_clasificador_para_scikit_learn():
+    from sklearn.base import is_classifier
+    from sklearn.model_selection import KFold, cross_val_score
+    assert is_classifier(ApilamientoJerarquicoKL())
+    X, y, _ = datos_regiones(3000)
+    auc = cross_val_score(ApilamientoJerarquicoKL(lam=1.0, profundidad=2, n_modelos=2), X, y,
+                          cv=KFold(3, shuffle=True, random_state=0), scoring="roc_auc")
+    assert np.all(auc > 0.7)
+
+
 def test_newton_ponderado_coincide_con_sklearn():
     from sklearn.linear_model import LogisticRegression
     rng = np.random.default_rng(4)
@@ -127,7 +153,7 @@ def test_newton_ponderado_coincide_con_sklearn():
     y = rng.random(3000) < 1 / (1 + np.exp(-(F @ [1.0, -0.7] + 0.2)))
     peso = rng.uniform(0.2, 1.0, 3000)
     w = logistica_newton_ponderada(F, y, peso, ridge=0.0)
-    ref = LogisticRegression(penalty=None, max_iter=5000).fit(F, y, sample_weight=peso / peso.mean())
+    ref = LogisticRegression(C=np.inf, max_iter=5000).fit(F, y, sample_weight=peso / peso.mean())   # sin penalización
     np.testing.assert_allclose(w, np.r_[ref.intercept_, ref.coef_[0]], atol=1e-4)
 
 

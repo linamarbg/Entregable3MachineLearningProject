@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="hero-t hero-d">
+  <title id="hero-t">Corredor de abastecimiento de alimentos</title>
+  <desc id="hero-d">Ilustración propia: un camión cargado de frutas y verduras recorre una carretera entre las montañas andinas hacia una central mayorista; en el cielo, una red de rutas punteadas representa los corredores del SIPSA.</desc>
+  <defs>
+    <linearGradient id="hc-cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fdf1d6"/>
+      <stop offset="0.7" stop-color="#f3f5ea"/>
+      <stop offset="1" stop-color="#e3efe2"/>
+    </linearGradient>
+    <linearGradient id="hc-lejos" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a9cdb0"/>
+      <stop offset="1" stop-color="#8bbb96"/>
+    </linearGradient>
+    <linearGradient id="hc-medio" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5f9e6e"/>
+      <stop offset="1" stop-color="#4a8a5c"/>
+    </linearGradient>
+    <linearGradient id="hc-frente" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d7f52"/>
+      <stop offset="1" stop-color="#2c6440"/>
+    </linearGradient>
+    <clipPath id="hc-marco"><rect width="720" height="380" rx="22"/></clipPath>
+  </defs>
+  <g clip-path="url(#hc-marco)">
+    <rect width="720" height="380" fill="url(#hc-cielo)"/>
+    <!-- sol -->
+    <circle cx="600" cy="86" r="52" fill="#f6c46a" opacity=".28"/>
+    <circle cx="600" cy="86" r="32" fill="#f2a93b"/>
+    <!-- nubes -->
+    <g fill="#ffffff" opacity=".95">
+      <ellipse cx="140" cy="66" rx="48" ry="13"/><ellipse cx="170" cy="56" rx="30" ry="15"/><ellipse cx="118" cy="58" rx="20" ry="10"/>
+      <ellipse cx="420" cy="44" rx="40" ry="10"/><ellipse cx="446" cy="37" rx="24" ry="11"/>
+    </g>
+    <!-- red de corredores (datos) -->
+    <g fill="none" stroke="#2b6f8e" stroke-width="1.8" stroke-dasharray="5 6" opacity=".6">
+      <path d="M48 128 Q 190 80 318 116 T 590 150"/>
+      <path d="M96 170 Q 240 128 352 156 T 590 150"/>
+      <path d="M210 104 Q 300 60 452 96 T 590 150"/>
+    </g>
+    <g fill="#2b6f8e">
+      <circle cx="48" cy="128" r="4.5"/><circle cx="96" cy="170" r="4"/><circle cx="210" cy="104" r="4"/>
+      <circle cx="318" cy="116" r="3.5"/><circle cx="352" cy="156" r="3.5"/><circle cx="452" cy="96" r="3.5"/>
+    </g>
+    <circle cx="590" cy="150" r="9" fill="#e39b2d" stroke="#ffffff" stroke-width="3"/>
+    <!-- cordillera lejana -->
+    <path d="M0 236 L60 158 L104 196 L176 112 L246 188 L306 142 L380 204 L458 122 L528 192 L600 152 L720 214 L720 380 L0 380 Z" fill="url(#hc-lejos)"/>
+    <path d="M176 112 L196 136 L184 134 L170 148 L160 132 Z M458 122 L478 146 L466 143 L452 156 L444 140 Z" fill="#ffffff" opacity=".55"/>
+    <!-- montañas medias con cultivos en terrazas -->
+    <path d="M0 262 Q 90 186 186 238 T 372 228 T 556 238 T 720 222 L720 380 L0 380 Z" fill="url(#hc-medio)"/>
+    <g fill="none" stroke="#3f7f50" stroke-width="2.4" stroke-linecap="round" opacity=".8">
+      <path d="M40 236 Q 92 210 150 228"/><path d="M30 252 Q 96 224 166 244"/><path d="M420 232 Q 470 214 520 230"/>
+      <path d="M408 248 Q 470 228 534 246"/><path d="M600 228 Q 650 212 700 224"/>
+    </g>
+    <!-- cafetales -->
+    <g fill="#2f6b43">
+      <circle cx="392" cy="240" r="9"/><circle cx="410" cy="244" r="8"/><circle cx="428" cy="240" r="9"/><circle cx="446" cy="244" r="8"/>
+      <circle cx="92" cy="246" r="8"/><circle cx="110" cy="242" r="9"/>
+    </g>
+    <g fill="#c8423b"><circle cx="394" cy="237" r="1.8"/><circle cx="412" cy="242" r="1.8"/><circle cx="430" cy="236" r="1.8"/><circle cx="448" cy="242" r="1.8"/><circle cx="112" cy="238" r="1.8"/></g>
+    <!-- colinas frontales -->
+    <path d="M0 304 Q 140 248 292 288 T 566 282 T 720 272 L720 380 L0 380 Z" fill="url(#hc-frente)"/>
+    <!-- carretera -->
+    <path id="hc-via" d="M-20 392 C 110 338 214 350 312 324 S 486 286 586 284" fill="none" stroke="#4b5157" stroke-width="36" stroke-linecap="round"/>
+    <path d="M-20 392 C 110 338 214 350 312 324 S 486 286 586 284" fill="none" stroke="#f7f4ec" stroke-width="3" stroke-dasharray="16 12"/>
+    <!-- matas de plátano -->
+    <g transform="translate(56 300)">
+      <rect x="-3" y="-34" width="6" height="40" rx="3" fill="#6b4f2f"/>
+      <path d="M0 -34 C -26 -48 -40 -40 -46 -26 C -30 -32 -16 -32 0 -30 Z" fill="#4e9a3a"/>
+      <path d="M0 -34 C 24 -52 40 -44 46 -30 C 30 -34 16 -34 0 -30 Z" fill="#5fae45"/>
+      <path d="M0 -36 C -6 -60 6 -70 16 -70 C 8 -58 6 -46 2 -34 Z" fill="#6fbf52"/>
+      <ellipse cx="6" cy="-22" rx="6" ry="9" fill="#f2c94c"/>
+    </g>
+    <g transform="translate(684 306) scale(.85)">
+      <rect x="-3" y="-34" width="6" height="40" rx="3" fill="#6b4f2f"/>
+      <path d="M0 -34 C -26 -48 -40 -40 -46 -26 C -30 -32 -16 -32 0 -30 Z" fill="#4e9a3a"/>
+      <path d="M0 -34 C 24 -52 40 -44 46 -30 C 30 -34 16 -34 0 -30 Z" fill="#5fae45"/>
+      <path d="M0 -36 C -6 -60 6 -70 16 -70 C 8 -58 6 -46 2 -34 Z" fill="#6fbf52"/>
+    </g>
+    <!-- central mayorista -->
+    <g transform="translate(560 186)">
+      <rect x="0" y="34" width="150" height="70" fill="#f7f4ec" stroke="#d8d1bf" stroke-width="2"/>
+      <polygon points="-10,36 75,2 160,36" fill="#c8423b"/>
+      <polygon points="-10,36 75,2 160,36" fill="none" stroke="#a63630" stroke-width="2"/>
+      <rect x="40" y="14" width="70" height="16" rx="3" fill="#1f5135"/>
+      <text x="75" y="26" text-anchor="middle" font-family="Nunito, Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#ffffff" letter-spacing="1">CENTRAL</text>
+      <g>
+        <rect x="0" y="40" width="15" height="14" fill="#e39b2d"/><rect x="15" y="40" width="15" height="14" fill="#ffffff"/>
+        <rect x="30" y="40" width="15" height="14" fill="#e39b2d"/><rect x="45" y="40" width="15" height="14" fill="#ffffff"/>
+        <rect x="60" y="40" width="15" height="14" fill="#e39b2d"/><rect x="75" y="40" width="15" height="14" fill="#ffffff"/>
+        <rect x="90" y="40" width="15" height="14" fill="#e39b2d"/><rect x="105" y="40" width="15" height="14" fill="#ffffff"/>
+        <rect x="120" y="40" width="15" height="14" fill="#e39b2d"/><rect x="135" y="40" width="15" height="14" fill="#ffffff"/>
+      </g>
+      <g fill="#e39b2d"><circle cx="7.5" cy="54" r="7.5"/><circle cx="37.5" cy="54" r="7.5"/><circle cx="67.5" cy="54" r="7.5"/><circle cx="97.5" cy="54" r="7.5"/><circle cx="127.5" cy="54" r="7.5"/></g>
+      <g fill="#ffffff"><circle cx="22.5" cy="54" r="7.5"/><circle cx="52.5" cy="54" r="7.5"/><circle cx="82.5" cy="54" r="7.5"/><circle cx="112.5" cy="54" r="7.5"/><circle cx="142.5" cy="54" r="7.5"/></g>
+      <g fill="#5b4636"><rect x="14" y="68" width="26" height="36" rx="2"/><rect x="62" y="68" width="26" height="36" rx="2"/><rect x="110" y="68" width="26" height="36" rx="2"/></g>
+      <!-- canastas a la entrada -->
+      <g transform="translate(44 92)">
+        <rect x="0" y="0" width="14" height="10" rx="1.5" fill="#b07d4f"/>
+        <circle cx="4" cy="-1" r="3" fill="#c8423b"/><circle cx="10" cy="-1" r="3" fill="#c8423b"/>
+      </g>
+      <g transform="translate(92 92)">
+        <rect x="0" y="0" width="14" height="10" rx="1.5" fill="#b07d4f"/>
+        <circle cx="4" cy="-1" r="3" fill="#f08c2b"/><circle cx="10" cy="-1" r="3" fill="#4e9a3a"/>
+      </g>
+    </g>
+    <!-- camión con alimentos -->
+    <g transform="translate(232 262) rotate(-9)">
+      <!-- sombra -->
+      <ellipse cx="78" cy="66" rx="84" ry="7" fill="#1f2a24" opacity=".22"/>
+      <!-- plataforma de madera -->
+      <rect x="0" y="22" width="114" height="28" rx="3" fill="#8a5a3c"/>
+      <g stroke="#6b432b" stroke-width="2"><line x1="0" y1="31" x2="114" y2="31"/><line x1="0" y1="40" x2="114" y2="40"/></g>
+      <!-- guacales -->
+      <rect x="6" y="6" width="32" height="18" rx="2" fill="#c98b4e"/>
+      <rect x="41" y="4" width="32" height="20" rx="2" fill="#d39a5c"/>
+      <rect x="76" y="6" width="32" height="18" rx="2" fill="#c98b4e"/>
+      <g stroke="#a86d38" stroke-width="1.5"><line x1="6" y1="15" x2="38" y2="15"/><line x1="41" y1="14" x2="73" y2="14"/><line x1="76" y1="15" x2="108" y2="15"/></g>
+      <!-- tomates -->
+      <g fill="#c8423b"><circle cx="13" cy="4" r="6"/><circle cx="24" cy="2" r="6"/><circle cx="34" cy="5" r="5"/></g>
+      <g fill="#ffffff" opacity=".45"><circle cx="11" cy="2" r="1.6"/><circle cx="22" cy="0" r="1.6"/></g>
+      <!-- plátanos -->
+      <path d="M44 2 C 50 -10 64 -12 72 -4 C 64 -6 54 -4 48 4 Z" fill="#f2c94c" stroke="#d6a92f" stroke-width="1"/>
+      <path d="M46 4 C 54 -4 66 -4 72 2 C 64 2 56 4 50 8 Z" fill="#f5d46a" stroke="#d6a92f" stroke-width="1"/>
+      <!-- aguacates y papas -->
+      <g fill="#3f6e2a"><ellipse cx="83" cy="3" rx="5" ry="6.5"/><ellipse cx="94" cy="2" rx="5" ry="6.5"/></g>
+      <g fill="#b8875a"><ellipse cx="104" cy="4" rx="5.5" ry="4.5"/><ellipse cx="99" cy="7" rx="4.5" ry="3.5"/></g>
+      <!-- cabina -->
+      <path d="M116 14 L148 14 Q 156 14 160 24 L166 40 Q 168 50 160 50 L116 50 Z" fill="#2b6f8e"/>
+      <path d="M124 20 L146 20 Q 151 20 153 26 L156 34 L124 34 Z" fill="#cfe6f2"/>
+      <rect x="156" y="42" width="8" height="4" rx="1" fill="#f2a93b"/>
+      <!-- chasis y llantas -->
+      <rect x="-4" y="48" width="170" height="8" rx="2" fill="#33383d"/>
+      <g fill="#2d3135"><circle cx="24" cy="58" r="11"/><circle cx="80" cy="58" r="11"/><circle cx="140" cy="58" r="11"/></g>
+      <g fill="#c9ced3"><circle cx="24" cy="58" r="4"/><circle cx="80" cy="58" r="4"/><circle cx="140" cy="58" r="4"/></g>
+    </g>
+  </g>
+</svg>

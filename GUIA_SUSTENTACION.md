@@ -2,7 +2,8 @@
 
 Orden sugerido de la exposición (unos 20 minutos): presentación de diapositivas (problema → datos →
 benchmarks → literatura → AJ-KL → teoría → diseño → resultados → límites) y cierre con una demostración en vivo
-del dashboard: tabla de líderes, predicción de un corredor real con el AJ-KL y la pestaña «Modelo original».
+del dashboard: el mapa de los corredores en Contexto (elegir una central, por ejemplo Corabastos), la tabla de
+líderes, la predicción de un corredor real con el AJ-KL y la pestaña «Modelo original».
 Abran la URL de Render unos minutos antes: el plan gratuito tarda cerca de un minuto en despertar.
 
 ## Criterio 1 · Problema y formulación matemática (10 %)
@@ -54,7 +55,22 @@ tiempo (olvido con semivida log 2 / log(1/γ)).
 para 375 mil filas y unos 2 ms por cada mil predicciones del combinador (sin contar los modelos base).
 
 **Generalización.** Rademacher por nodo ≤ √(2 log M / n_r) (lema de Massart): la capacidad crece con log M,
-no con el número de variables; la KL evita que los nodos pequeños se aparten del padre.
+no con el número de variables; la KL evita que los nodos pequeños se aparten del padre. Con la contracción de
+Ledoux-Talagrand (la log-loss es 1/ε-lipschitziana) eso da la cota de la proposición 8:
+R(w) ≤ R̂(w) + (2/ε)√(2 log M / n_r) + log(1/ε)√(log(1/δ)/(2 n_r)).
+
+**¿Por qué la log-loss y no el error de clasificación?** Es una regla de puntuación estrictamente propia
+(proposición 7): su valor esperado se minimiza solo en la probabilidad verdadera, y el exceso de pérdida es
+KL(Ber(π) ‖ Ber(q)). Así los pesos buscan probabilidades calibradas, no solo un buen orden, y la pérdida es la
+menos log-verosimilitud de Bernoulli, que sostiene la lectura bayesiana.
+
+**¿Los pesos convergen a algo?** Sí (proposición 10): con γ = 1, λ fijo y filas independientes, μ_r = λ/S_r → 0
+y la convergencia uniforme del riesgo empírico da ŵ_r → w*_r, el mejor pool lineal del nodo (teorema de
+consistencia de los estimadores extremos). Con pocos datos domina el prior (proposición 5); con muchos, los datos.
+
+**¿Por qué la calibración no cambia el AUC?** Porque se exige a, b ≥ 0 (proposición 9): g'(q) =
+g(1 − g)(a/q + b/(1 − q)) > 0, así que conserva el orden. En los pliegues calibrados salió a ≈ 1,1-1,2 y
+b ≈ 0,8-1,0: la restricción no se activó.
 
 **Casos límite.** λ → ∞: promedio simple; λ → 0⁺: apilamiento local (el más cercano al padre en KL);
 profundidad 1: apilamiento global; γ = 1: sin olvido.
@@ -65,9 +81,10 @@ convexo con certificado. Y la ablación lo compara contra stacking logístico y 
 
 ## Criterio 4 · Implementación y diseño experimental (15 %)
 
-**¿Es implementación propia?** Sí: `src/original_model.py` usa solo numpy y scipy, hereda de BaseEstimator y
-ClassifierMixin, y tiene 20 pruebas unitarias (aprende en datos sintéticos con solución conocida, alcanza el
-óptimo de SLSQP y de L-BFGS, casos límite, clone, entradas inválidas).
+**¿Es implementación propia?** Sí: `src/original_model.py` usa solo numpy y scipy, hereda de ClassifierMixin y
+BaseEstimator (en ese orden: desde scikit-learn 1.6 es el que conserva la etiqueta de clasificador), y tiene 22
+pruebas unitarias (aprende en datos sintéticos con solución conocida, alcanza el óptimo de SLSQP y de L-BFGS,
+casos límite, clone, cross_val_score con AUC, calibración monótona, entradas inválidas).
 
 **¿Comparación justa?** Mismos pliegues, misma semilla, mismo presupuesto de TPE (24 evaluaciones), mismo
 criterio (AUC interno). El combinador ve más filas etiquetadas (todas anteriores al corte): el control con 40
@@ -119,3 +136,8 @@ Preguntas probables:
   efecto no despreciable. Reportamos también las que no rechazan.
 * **¿Dónde no gana?** Sección 5.12: subgrupos de distancia, escala y PDET, y centrales donde pierde frente a
   XGBoost.
+* **¿Qué tan robusto es?** Sección 5.13. Estable frente a λ (entre 0,01 y 1000 el AUC cambia a lo sumo 0,0015),
+  γ, profundidad y semilla del TPE. Más estable que el apilamiento global con ruido en las probabilidades base,
+  menos con 20 % de etiquetas invertidas (−0,0052 frente a −0,0034). Con 5 mil filas de historial o con 8 % de
+  positivos queda por debajo de XGBoost: necesita un historial suficiente, limpio y con la prevalencia natural.
+  Ojo: los modelos base quedaron fijos; solo se perturbó el combinador.

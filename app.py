@@ -17,10 +17,12 @@ from dash import html
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 import data as DT  # noqa: E402
 
+FUENTES = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@700;800&display=swap"
+
 app = dash.Dash(
     __name__,
     use_pages=True,
-    external_stylesheets=[dbc.themes.FLATLY, dbc.icons.BOOTSTRAP],
+    external_stylesheets=[dbc.themes.FLATLY, dbc.icons.BOOTSTRAP, FUENTES],
     title="Interrupciones en corredores de abastecimiento",
     suppress_callback_exceptions=True,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"},
@@ -31,8 +33,8 @@ server = app.server  # servidor WSGI que usa gunicorn en Render
 
 navbar = dbc.Navbar(
     dbc.Container([
-        dbc.NavbarBrand([html.I(className="bi bi-truck me-2", **{"aria-hidden": "true"}),
-                         "Corredores de abastecimiento · SIPSA"], href="/", className="fw-bold"),
+        dbc.NavbarBrand([html.Img(src=app.get_asset_url("img/logo.svg"), alt=""),
+                         "Corredores de abastecimiento · SIPSA"], href="/"),
         dbc.NavbarToggler(id="nav-toggler"),
         dbc.Collapse(dbc.Nav([
             dbc.NavItem(dbc.NavLink("Contexto", href="/", active="exact")),
@@ -46,15 +48,16 @@ navbar = dbc.Navbar(
                                    className="ms-lg-2 my-1", id="boton-repo")),
         ], navbar=True, className="ms-auto align-items-lg-center"), id="nav-collapse", navbar=True),
     ], fluid=True),
-    color="primary", dark=True, fixed="top", className="navbar-principal",
+    color="primary", dark=True, fixed="top", expand="lg", className="navbar-principal",
 )
 
 app.layout = html.Div([
     navbar,
     dbc.Container(dash.page_container, fluid=True, className="px-3 px-md-4"),
     html.Footer(dbc.Container([
+        html.Img(src=app.get_asset_url("img/productos.svg"), alt=""),
         "Camilo Molina Guerrero y Lina Margarita Buelvas · Machine Learning, Doctorado en Ingeniería · ",
-        "Datos: SIPSA-Abastecimiento (DANE), 2018-2025 · Versión 3.0 (octubre de 2026)",
+        "Datos: SIPSA-Abastecimiento (DANE), 2018-2025 · Versión 3.1 (octubre de 2026) · Ilustraciones propias",
     ], fluid=True), className="pie"),
 ])
 

@@ -22,6 +22,80 @@
 # * **Ajuste por comparaciones múltiples:** Holm dentro de cada familia de siete comparaciones (AJ-KL frente
 #   a cada benchmark); Nemenyi ya controla el error de familia de sus 28 pares; el MCS controla el error de
 #   familia por construcción.
+#
+# ### Fundamento estadístico de las pruebas
+#
+# Sean $k$ modelos comparados en $N$ bloques (los 48 meses del bucle externo) y $d_b$ la diferencia de una
+# métrica entre el modelo original y un benchmark en el bloque $b$. Cada prueba responde una pregunta distinta y
+# trata la dependencia entre bloques de una forma distinta; por eso la guía pide al menos tres.
+#
+# **Friedman** {cite}`friedman1937`. Con $R_j$ el rango medio del modelo $j$ en los $N$ bloques,
+#
+# $$
+# \chi^2_F = \frac{12N}{k(k+1)}\Big[\sum_{j=1}^k R_j^2 - \frac{k(k+1)^2}{4}\Big],
+# \qquad
+# F_F = \frac{(N-1)\,\chi^2_F}{N(k-1) - \chi^2_F},
+# $$ (eq-friedman)
+#
+# con $F_F \sim F_{k-1,\,(k-1)(N-1)}$ bajo $H_0$: todos los modelos tienen la misma distribución de rangos
+# {cite}`iman1980`. La distribución de referencia supone bloques independientes; como los meses de un mismo
+# pliegue comparten modelo entrenado, el p-valor que se reporta es el de una **permutación restringida**: en
+# cada réplica se permutan las etiquetas de los modelos con la misma permutación en todos los meses de un
+# pliegue, y $p$ es la fracción de réplicas con estadístico mayor o igual que el observado.
+#
+# **Nemenyi** {cite}`nemenyi1963,demsar2006`. Dos modelos difieren si $|R_i - R_j| > \mathrm{CD} =
+# q_\alpha\sqrt{k(k+1)/(6N)}$, con $q_\alpha$ el cuantil del rango studentizado dividido por $\sqrt 2$. Controla el
+# error de familia de todos los pares y por eso es conservadora.
+#
+# **Wilcoxon de rangos con signo** {cite}`wilcoxon1945`. $W^+ = \sum_{b:\,d_b > 0}\mathrm{rango}(|d_b|)$; bajo
+# $H_0$ (las $d_b$ son simétricas alrededor de cero),
+# $z = \{W^+ - N(N+1)/4\} / \sqrt{N(N+1)(2N+1)/24}$ es aproximadamente normal. No supone normalidad, pero sí
+# simetría e independencia entre meses (la sección 6.3 revisa ambas). Los p-valores se ajustan con Holm
+# {cite}`holm1979`: ordenados $p_{(1)} \le \dots \le p_{(m)}$, $\tilde p_{(i)} = \max_{j \le i}\min\{1, (m-j+1)\,p_{(j)}\}$.
+#
+# **DeLong** {cite}`delong1988,sun2014fast`. El AUC es un estadístico U,
+# $\hat\theta = \frac{1}{n_1 n_0}\sum_{i \in \mathcal P}\sum_{j \in \mathcal N}\psi(s_i, s_j)$ con
+# $\psi(a, b) = \mathbf 1[a > b] + \tfrac12\mathbf 1[a = b]$; sus componentes estructurales dan la covarianza de
+# $(\hat\theta_1, \hat\theta_2)$ en la misma muestra y $z = (\hat\theta_1 - \hat\theta_2)/\sqrt{\widehat{\mathrm{Var}}(\hat\theta_1 - \hat\theta_2)}$.
+# Esa varianza supone filas independientes; en 2025 las filas de una misma semana comparten choques, así que el
+# error estándar se reemplaza por el del **bootstrap por bloques de semana** y el intervalo es BCa
+# {cite}`efron1987bca`.
+#
+# **Diebold-Mariano** {cite}`diebold1995` con la corrección de Harvey, Leybourne y Newbold {cite}`harvey1997`.
+# Con $d_t$ la diferencia de log-loss semanal entre el benchmark y el original en las $T = 52$ semanas de 2025,
+#
+# $$
+# \mathrm{DM} = \frac{\bar d}{\sqrt{\hat\sigma^2_{\mathrm{HAC}}/T}},
+# \qquad
+# \mathrm{DM}^\ast = \mathrm{DM}\,\sqrt{\frac{T + 1 - 2h + h(h-1)/T}{T}} \sim t_{T-1},
+# $$ (eq-dm)
+#
+# donde $\hat\sigma^2_{\mathrm{HAC}}$ es la varianza de largo plazo de Newey-West {cite}`newey1987hac`, que admite
+# autocorrelación de las diferencias, y $h = 1$ es el horizonte. Supone que $d_t$ es estacionaria en covarianza.
+#
+# **Model Confidence Set** {cite}`hansen2011mcs`. Elimina modelos de uno en uno mientras la prueba de igual
+# capacidad predictiva (estadístico de rango sobre las diferencias de pérdida por pares) rechace; el conjunto que
+# queda contiene al mejor modelo con probabilidad al menos $1 - \alpha$. Las distribuciones se obtienen con el
+# bootstrap estacionario {cite}`politis1994`, que respeta la dependencia temporal.
+#
+# **t corregida de Nadeau y Bengio** {cite}`nadeau2003`. Con $J$ pliegues,
+# $t = \bar d / \sqrt{(1/J + n_{\mathrm{eval}}/n_{\mathrm{entr}})\,s^2} \sim t_{J-1}$: el término
+# $n_{\mathrm{eval}}/n_{\mathrm{entr}}$ corrige la subestimación de la varianza por el solapamiento de los
+# entrenamientos. Con solo cinco pliegues tiene poca potencia, y por eso es complementaria.
+#
+# **Tamaños del efecto.** Delta de Cliff $\delta = P(X > Y) - P(X < Y)$ {cite}`cliff1993` con los umbrales de
+# {cite:t}`romano2006cliff` (despreciable si $|\delta| < 0{,}147$) y $d_z = \bar d / s_d$ pareada. La regla de
+# decisión de la guía exige tres pruebas con $\tilde p < 0{,}05$ (0,10 en el MCS) **y** un efecto no despreciable.
+#
+# | Prueba | $H_0$ | Distribución de referencia | Cómo trata la dependencia |
+# |---|---|---|---|
+# | Friedman | Mismos rangos para todos los modelos | $F_{k-1,(k-1)(N-1)}$ y permutación | Permutación restringida al pliegue |
+# | Nemenyi | Mismo rango medio por par | Rango studentizado | Ninguna (conservadora) |
+# | Wilcoxon-Holm | Mediana de $d_b$ igual a cero | Normal (aprox.) | Se revisa la autocorrelación (6.3) |
+# | DeLong | Mismo AUC en 2025 | Normal | Error estándar por bloques de semana |
+# | Diebold-Mariano HLN | Misma log-loss esperada | $t_{T-1}$ | Varianza HAC de Newey-West |
+# | MCS | Igual capacidad predictiva | Bootstrap | Bootstrap estacionario |
+# | Nadeau-Bengio | Misma métrica esperada | $t_{J-1}$ | Corrección de varianza por solapamiento |
 
 # %%
 import json
@@ -70,6 +144,58 @@ display(comp.round(4))
 mejor = {c: (comp[c].idxmin() if c in ("brier", "log_loss", "ece") else comp[c].idxmax()) for c in cols}
 display(Markdown("Modelo con el mejor valor medio externo en cada métrica: " +
                  "; ".join(f"**{c}**: {m}" for c, m in mejor.items()) + "."))
+
+# %% [markdown]
+# ### Tabla resumen
+#
+# La guía (sección 6.3) pide, para el modelo original y los benchmarks, la media ± desviación estándar del bucle
+# externo, un intervalo de confianza bootstrap y los tiempos de entrenamiento e inferencia. El intervalo es del AUC
+# medio de los 48 meses del bucle externo con el bootstrap estacionario {cite}`politis1994`, que remuestrea bloques
+# de meses consecutivos y así respeta su dependencia. Los tiempos son los de los modelos de producción (entrenados
+# con las 622 mil filas; k-NN con su muestra de 40 mil): el del AJ-KL suma el ajuste de sus nueve modelos base y el
+# del combinador, y su inferencia incluye las predicciones de los nueve modelos base.
+
+# %%
+import estadistica as E
+import experimento as X
+from sklearn.metrics import roc_auc_score
+
+mensual = mens.pivot(index="bloque", columns="modelo", values="auc")
+for m_ in ["LightGBM", "CatBoost"]:
+    serie = {}
+    for pl in ["k1", "k2", "k3", "k4"]:
+        _, Vk = X.cargar_pliegue(pl)
+        p_ = joblib.load(f"../data/resultados/sota/{m_}_{pl}.joblib")["pred"]
+        d_ = pd.DataFrame({"y": Vk["interrupcion_t1"].to_numpy(),
+                           "mes": pd.to_datetime(Vk["semana_t1"]).dt.to_period("M").astype(str).to_numpy(),
+                           "s": pd.Series(p_["s"], index=p_["fila"]).reindex(Vk["fila"]).to_numpy()})
+        serie.update({mes: roc_auc_score(g["y"], g["s"]) for mes, g in d_.groupby("mes")})
+    mensual[m_] = pd.Series(serie)
+art = pd.read_csv("../data/resultados/artefactos_resumen.csv").set_index("modelo")
+base9 = list(sel["modelo"]) + ["LightGBM", "CatBoost"]
+t_ajkl = art.loc[base9, "segundos_fit"].sum() + joblib.load("../data/resultados/ajkl/final.joblib")["resumen"]["t_refit"]
+equiv = {"AJ-KL (original)": ([c for c in mensual.columns if c.startswith("AJ-KL")][0], "AJ-KL (original)"),
+         "LightGBM (estado del arte)": ("LightGBM", "LightGBM"), "CatBoost (estado del arte)": ("CatBoost", "CatBoost")}
+equiv.update({r.modelo: (r.combinacion, r.modelo) for r in sel.itertuples()})
+filas_r = []
+for nombre in comp.index:
+    col_m, col_a = equiv[nombre]
+    ic = E.ic_bootstrap_estacionario(mensual[col_m].dropna().sort_index().to_numpy(), B=2000)
+    filas_r.append({"modelo": nombre, "AUC externo (media ± DE, 4 años)": f"{comp.loc[nombre, 'auc']:.4f} ± {comp.loc[nombre, 'auc_de']:.4f}",
+                    "AUC mensual medio": ic["estimado"], "IC 95 % inf.": ic["ic_inf"], "IC 95 % sup.": ic["ic_sup"],
+                    "entrenamiento (s)": t_ajkl if nombre.startswith("AJ-KL") else art.loc[col_a, "segundos_fit"],
+                    "inferencia (ms / 1000 filas)": art.loc[col_a, "ms_por_1000"]})
+resumen_tabla = pd.DataFrame(filas_r).set_index("modelo")
+display(resumen_tabla.round(4))
+display(Markdown(
+    f"Los intervalos se solapan: con 48 meses, el bootstrap del AUC medio de cada modelo tiene un ancho de unas "
+    f"{(resumen_tabla['IC 95 % sup.'] - resumen_tabla['IC 95 % inf.']).median():.4f} unidades, mayor que la distancia "
+    "entre los cuatro primeros modelos. Por eso la comparación no se hace con intervalos marginales sino con pruebas "
+    "pareadas mes a mes (secciones 6.4 a 6.7), que eliminan la variación común entre meses. El AJ-KL es el más lento "
+    f"en entrenar ({t_ajkl:.0f} s, porque ajusta los nueve modelos base) y el "
+    f"{int((resumen_tabla['inferencia (ms / 1000 filas)'] >= resumen_tabla.loc['AJ-KL (original)', 'inferencia (ms / 1000 filas)']).sum())}.º "
+    f"más lento en predecir ({resumen_tabla.loc['AJ-KL (original)', 'inferencia (ms / 1000 filas)']:.0f} ms por cada mil "
+    "filas), un costo despreciable para una alerta semanal."))
 
 # %% [markdown]
 # ## 6.3 Supuestos de cada prueba

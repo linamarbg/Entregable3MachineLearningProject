@@ -78,7 +78,7 @@ def test_logistica_newton_coincide_con_sklearn():
     F = rng.normal(size=(5000, 3))
     y = rng.random(5000) < 1 / (1 + np.exp(-(F @ [1.0, -0.5, 0.2] + 0.3)))
     w = logistica_newton(F, y, ridge=0.0)
-    ref = LogisticRegression(penalty=None, max_iter=2000).fit(F, y)
+    ref = LogisticRegression(C=np.inf, max_iter=2000).fit(F, y)   # sin penalización
     np.testing.assert_allclose(w, np.r_[ref.intercept_, ref.coef_[0]], atol=1e-4)
 
 

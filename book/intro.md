@@ -15,7 +15,7 @@ Contexto, EDA y modelos, con predicción en vivo
 :::
 
 :::{grid-item-card} 💻 Código
-:link: https://github.com/camilomolinaguerrero-sudo/Entregable3MachineLearningProject
+:link: https://github.com/linamarbg/Entregable3MachineLearningProject
 Repositorio con scripts, módulos, artefactos y este libro
 :::
 
@@ -65,8 +65,8 @@ Este entregable cierra el proyecto con cuatro productos:
 2. **Datos: ETL y EDA**.
 3. **Modelos benchmark**: selección estadística, reentrenamiento, artefactos y comparadores del estado del arte.
 4. **Revisión de literatura y novedad** en Web of Science, Scopus y ScienceDirect.
-5. **Modelo original**: formulación, propiedades con demostración, pseudocódigo, complejidad, implementación,
-   pruebas unitarias, convergencia, ablación, iteraciones del diseño, interpretabilidad y conjuntos adicionales.
+5. **Modelo original**: formulación, propiedades con demostración (de optimización y de fundamento estadístico), pseudocódigo, complejidad, implementación,
+   pruebas unitarias, convergencia, ablación, iteraciones del diseño, interpretabilidad, conjuntos adicionales y robustez.
 6. **Validación estadística**: protocolo, supuestos, pruebas, ajustes por comparaciones múltiples, intervalos,
    tamaños del efecto, estado del arte y modelos de producción.
 7. **Dashboard y despliegue**.

@@ -3,9 +3,9 @@
 #
 # La tabla reúne cada observación con la acción realizada, su ubicación en este libro y la evidencia.
 # Incluye tres grupos: las observaciones del profesor al Entregable 1 (atendidas en el Entregable 2 y
-# retomadas aquí porque el modelo original aprovecha la dependencia espacial), las observaciones del
-# profesor al Entregable 2 y los problemas que el propio equipo encontró en el Entregable 2 al
-# preparar este entregable. Una corrección que cambia un resultado obliga a recalcular todo lo que
+# retomadas aquí porque el modelo original aprovecha la dependencia espacial), el estado de las
+# observaciones del profesor al Entregable 2 (no se contaba con ellas al cierre de esta versión) y los
+# problemas que el propio equipo encontró en el Entregable 2 al preparar este entregable. Una corrección que cambia un resultado obliga a recalcular todo lo que
 # depende de él; la última columna dice qué se recalculó.
 
 # %%

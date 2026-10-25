@@ -23,13 +23,21 @@
 # | 5 | `scripts/23_externos.py <conjunto>` y `scripts/23b_externos_combinador.py` | `data/resultados/externos/` | 1 h por conjunto |
 # | 6 | `scripts/13_artefactos.py todos`, `13b_aligerar.py` y `13c_artefacto_ajkl.py` | `artifacts/`, `artefactos_resumen.csv` | 40 min |
 # | 7 | `scripts/14_validacion_estadistica.py` y `14b_validacion_produccion.py` | `data/resultados/validacion/` | 15 min |
-# | 8 | `scripts/17_datos_dashboard.py` (EDA y modelos) | `data/dashboard/` | 15 min |
-# | 9 | `scripts/20_tabla_maestra.py` | `data/resultados/tabla_maestra.csv` | segundos |
-# | 10 | `python src/py2nb.py cuadernos/X.py book/X.ipynb --ejecutar` y `jupyter-book build book/` | `book/_build/html` | 5 min |
+# | 8 | `scripts/25_robustez_ajkl.py <pliegue> <experimento>` (k1-k4; sensibilidad, semillas, ruido, desbalance, muestra) | `data/resultados/robustez_ajkl/` | 1-40 min por combinación |
+# | 9 | `scripts/17_datos_dashboard.py` (EDA y modelos) y `scripts/26_mapa_dashboard.py` (mapa de corredores) | `data/dashboard/` | 15 min |
+# | 10 | `scripts/20_tabla_maestra.py` | `data/resultados/tabla_maestra.csv` | segundos |
+# | 11 | `python app.py` y `scripts/27_capturas_dashboard.py` (capturas del capítulo 7) | `book/figuras/` | 2 min |
+# | 12 | `python src/py2nb.py cuadernos/X.py book/X.ipynb --ejecutar` y `jupyter-book build book/` | `book/_build/html` | 5 min |
+#
+# En macOS sin `brew install libomp`, XGBoost y LightGBM no encuentran OpenMP; `scripts/ejecutar_mac.sh` corre
+# cualquier script con el libomp que trae scikit-learn (por ejemplo, `scripts/ejecutar_mac.sh app.py`). El
+# entorno virtual conviene crearlo fuera de iCloud (por ejemplo, en `~/.venvs/entregable3`): dentro de una carpeta
+# sincronizada, la importación de las librerías puede quedarse esperando a que se descarguen los archivos.
 #
 # Las pruebas unitarias se corren con `pytest tests/`: verifican las propiedades del AJ-KL (aprendizaje en
 # datos sintéticos con solución conocida, reproducibilidad, entradas inválidas, compatibilidad con
-# `sklearn.base.clone`, óptimo del descenso espejo frente a SLSQP y L-BFGS, casos límite), el modelo
+# `sklearn.base.clone` y con los scorers de scikit-learn, óptimo del descenso espejo frente a SLSQP y L-BFGS,
+# casos límite, calibración beta monótona), el modelo
 # exploratorio EJUL, la explicación SHAP por permutaciones y la prueba de ida y vuelta de los artefactos.
 # Los scripts `12_modelo_original.py`, `15_ablacion.py`, `18_complejidad.py`, `19_robustez.py` y
 # `21_ejul_catboost.py` corresponden al modelo exploratorio EJUL.
@@ -41,7 +49,7 @@ import sys
 import pandas as pd
 from IPython.display import display
 
-r = subprocess.run([sys.executable, "-m", "pytest", "../tests", "-q", "--no-header", "-p", "no:cacheprovider"],
+r = subprocess.run([sys.executable, "-m", "pytest", "../tests", "-q", "--no-header", "--color=no", "-p", "no:cacheprovider"],
                    capture_output=True, text=True)
 print(r.stdout[-1500:])
 

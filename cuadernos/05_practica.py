@@ -1,8 +1,9 @@
 # %% [markdown]
 # ## 5.6 Implementación
 #
-# La clase `ApilamientoJerarquicoKL` (`src/original_model.py`) hereda de `BaseEstimator` y `ClassifierMixin`,
-# así que funciona con `clone`, `Pipeline` y la validación anidada. Toda la lógica propia usa solo numpy y
+# La clase `ApilamientoJerarquicoKL` (`src/original_model.py`) hereda de `ClassifierMixin` y `BaseEstimator`
+# (en ese orden, que desde scikit-learn 1.6 es el que conserva la etiqueta de clasificador que usan
+# `is_classifier` y los scorers), así que funciona con `clone`, `Pipeline`, `cross_val_score` y la validación anidada. Toda la lógica propia usa solo numpy y
 # scipy: el objetivo y el gradiente de cada nodo, la actualización multiplicativa cerrada, la brecha de
 # Frank-Wolfe, el recorrido de la jerarquía y la calibración beta por Newton-Raphson ponderado. No hay
 # ningún `import` de un combinador ya hecho. La entrada `X` tiene $M$ columnas de probabilidades fuera de
@@ -30,6 +31,7 @@ warnings.filterwarnings("ignore")
 pio.renderers.default = "notebook_connected"
 import original_model as OM
 import plots as PL
+from figuras import coma
 
 R = "../data/resultados/"
 PL_ORDEN = ["k1", "k2", "k3", "k4", "final"]
@@ -298,3 +300,154 @@ cent = pru.groupby("mercado").apply(lambda g: roc_auc_score(g["interrupcion_t1"]
                                     if g["interrupcion_t1"].nunique() > 1 else np.nan).dropna()
 display(Markdown(f"Por central mayorista, el AJ-KL tiene mayor AUC que XGBoost en {(cent > 0).sum()} de {len(cent)} centrales; "
                  f"la mayor desventaja es {cent.min():+.4f} ({cent.idxmin()}) y la mayor ventaja {cent.max():+.4f} ({cent.idxmax()})."))
+
+# %% [markdown]
+# ## 5.13 Robustez y sensibilidad
+#
+# La guía pide la sensibilidad a los hiperparámetros propios, la estabilidad ante varias semillas y el
+# comportamiento bajo ruido, desbalance y menor tamaño de muestra. `scripts/25_robustez_ajkl.py` lo mide en
+# los cuatro pliegues del bucle externo: parte de los hiperparámetros que eligió TPE y del mismo historial,
+# cambia una sola cosa a la vez y evalúa en el mismo bloque externo $V_k$. Los nueve modelos base no se
+# reentrenan: las perturbaciones caen sobre el combinador, que es la contribución original. Como referencias
+# se reportan el apilamiento global (profundidad 1, el caso particular sin jerarquía) con la misma
+# perturbación y XGBoost sin perturbar.
+
+# %%
+import glob
+
+from plotly.subplots import make_subplots
+
+rob = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(R + "robustez_ajkl/*.parquet"))], ignore_index=True)
+ref = rob[(rob.factor == "referencia") & (rob.modelo == "AJ-KL")].drop_duplicates("pliegue").set_index("pliegue")["auc"]
+ref_ll = rob[(rob.factor == "referencia") & (rob.modelo == "AJ-KL")].drop_duplicates("pliegue").set_index("pliegue")["log_loss"]
+xgb = rob[rob.modelo == "XGBoost (sin perturbar)"].drop_duplicates("pliegue").set_index("pliegue")["auc"]
+display(pd.DataFrame({"AUC AJ-KL (configuración elegida)": ref, "AUC XGBoost": xgb, "ΔAUC": ref - xgb}).round(4))
+
+# %% [markdown]
+# ### Sensibilidad a los hiperparámetros propios
+#
+# Se mueve un hiperparámetro a la vez sobre una malla común a los cuatro pliegues; los demás quedan en el
+# valor elegido. La tabla da el cambio de AUC frente a la configuración elegida de cada pliegue.
+
+# %%
+MALLA = {"lam": [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0], "gamma": [0.98, 0.99, 0.995, 1.0], "profundidad": [1, 2, 3, 4]}
+sens = rob[(rob.experimento == "sensibilidad") & (rob.factor != "referencia")].copy()
+sens = sens[[any(np.isclose(v, m) for m in MALLA[f]) for f, v in zip(sens.factor, sens.valor)]]
+sens["ΔAUC"] = sens["auc"] - sens["pliegue"].map(ref)
+sens["Δ log-loss"] = sens["log_loss"] - sens["pliegue"].map(ref_ll)
+tab_s = sens.groupby(["factor", "valor"]).agg(**{"ΔAUC medio": ("ΔAUC", "mean"), "ΔAUC peor pliegue": ("ΔAUC", "min"),
+                                                 "Δ log-loss medio": ("Δ log-loss", "mean"),
+                                                 "pliegues sobre XGBoost": ("auc", lambda a: int((a.to_numpy() > xgb.loc[sens.loc[a.index, "pliegue"]].to_numpy()).sum()))})
+display(tab_s.round(4))
+fig = make_subplots(rows=1, cols=3, subplot_titles=["Encogimiento λ (escala log)", "Olvido γ", "Profundidad de la jerarquía"])
+for j, (f, eje) in enumerate([("lam", "log"), ("gamma", "linear"), ("profundidad", "linear")], start=1):
+    g = sens[sens.factor == f].groupby("valor")["auc"].agg(["mean", "min", "max"]).reset_index()
+    fig.add_scatter(x=g["valor"], y=g["mean"], mode="lines+markers", line=dict(color=PL.NARANJA, width=2.5),
+                    error_y=dict(type="data", symmetric=False, array=g["max"] - g["mean"], arrayminus=g["mean"] - g["min"],
+                                 color=PL.NARANJA, thickness=1), name="AJ-KL (media y rango de 4 pliegues)", showlegend=j == 1, row=1, col=j)
+    fig.add_hline(y=xgb.mean(), line_dash="dot", line_color=PL.AZUL, row=1, col=j,
+                  annotation_text="XGBoost" if j == 1 else None, annotation_position="bottom right")
+    fig.update_xaxes(type=eje, row=1, col=j)
+fig.update_yaxes(title="AUC en el bloque externo", row=1, col=1)
+fig.update_layout(title="Sensibilidad del AJ-KL a sus hiperparámetros (media de k1-k4)", height=380)
+fig.show()
+
+# %% [markdown]
+# ### Estabilidad ante la semilla
+#
+# El combinador es determinista: con los mismos datos y los mismos hiperparámetros da siempre los mismos
+# pesos (prueba unitaria `test_reproducible`). Lo único aleatorio es la búsqueda TPE, que propone los
+# hiperparámetros. Por eso se repitió la búsqueda completa (24 evaluaciones) con las semillas 43 a 46 y se
+# reajustó el modelo con la configuración elegida en cada caso.
+
+# %%
+sem = rob[rob.experimento == "semillas"].copy()
+base42 = pd.DataFrame([{"pliegue": pl, "valor": 42.0, "modelo": "AJ-KL", "auc": ref[pl], "log_loss": ref_ll[pl],
+                        **joblib.load(R + f"ajkl/{pl}.joblib")["resumen"]["params"]} for pl in ref.index])
+sem = pd.concat([base42, sem[(sem.factor == "semilla")]], ignore_index=True)
+sem["semilla"] = sem["valor"].astype(int)
+display(sem.pivot(index="semilla", columns="pliegue", values="auc").round(4))
+est_sem = sem.groupby("pliegue").agg(**{"AUC medio": ("auc", "mean"), "desviación": ("auc", "std"), "rango": ("auc", lambda a: a.max() - a.min()),
+                                       "semillas sobre XGBoost": ("auc", lambda a: int((a > xgb[sem.loc[a.index, "pliegue"].iat[0]]).sum())),
+                                       "profundidades elegidas": ("profundidad", lambda s: ", ".join(str(int(v)) for v in sorted(set(s)))),
+                                       "λ mínimo": ("lam", "min"), "λ máximo": ("lam", "max")})
+display(est_sem.round(4))
+
+# %% [markdown]
+# ### Ruido, desbalance y tamaño de muestra
+#
+# * **Ruido en las etiquetas:** se invierte al azar el 5, el 10 y el 20 % de las etiquetas del historial con que
+#   se ajusta el combinador (la evaluación en $V_k$ es con las etiquetas reales).
+# * **Ruido en las entradas:** se suma ruido gaussiano $N(0, \sigma^2)$ al logit de las nueve probabilidades base
+#   del historial, con $\sigma$ = 0,1, 0,25 y 0,5.
+# * **Desbalance:** se submuestrean los positivos del historial hasta tasas de 15 % y 8 % (la del panel es 28 %).
+# * **Tamaño de muestra:** se reduce el historial a 5, 10, 20 y 40 mil filas.
+
+# %%
+otros = rob[rob.experimento.isin(["ruido", "desbalance", "muestra"]) & (rob.factor != "referencia")].copy()
+otros["ΔAUC vs AJ-KL sin perturbar"] = otros["auc"] - otros["pliegue"].map(ref)
+otros["ΔAUC vs XGBoost"] = otros["auc"] - otros["pliegue"].map(xgb)
+tab_o = (otros.groupby(["factor", "valor", "modelo"])
+         .agg(**{"AUC medio": ("auc", "mean"), "ΔAUC vs AJ-KL sin perturbar": ("ΔAUC vs AJ-KL sin perturbar", "mean"),
+                 "ΔAUC vs XGBoost": ("ΔAUC vs XGBoost", "mean"), "log-loss media": ("log_loss", "mean"), "pliegues": ("auc", "size")}))
+display(tab_o.round(4))
+m = otros[otros.factor == "filas del historial"].groupby(["valor", "modelo"])["auc"].mean().unstack()
+fig = go.Figure()
+for col, color in [("AJ-KL", PL.NARANJA), ("Apilamiento global", PL.GRIS)]:
+    if col in m:
+        fig.add_scatter(x=m.index, y=m[col], mode="lines+markers", name=col, line=dict(color=color, width=2.5))
+fig.add_hline(y=float(ref.mean()), line_dash="dash", line_color=PL.NARANJA, annotation_text="AJ-KL con todo el historial")
+fig.add_hline(y=float(xgb.mean()), line_dash="dot", line_color=PL.AZUL, annotation_text="XGBoost", annotation_position="bottom right")
+fig.update_xaxes(title="Filas del historial del combinador", type="log").update_yaxes(title="AUC medio en el bloque externo")
+fig.update_layout(title="Tamaño de muestra: AJ-KL frente al apilamiento global con el mismo historial reducido", height=380)
+fig.show()
+
+# %%
+def fila(factor, valor, modelo="AJ-KL"):
+    g = otros[(otros.factor == factor) & np.isclose(otros.valor, valor) & (otros.modelo == modelo)]
+    return g["ΔAUC vs AJ-KL sin perturbar"].mean(), g["ΔAUC vs XGBoost"].mean()
+
+
+lam_peor = tab_s.loc["lam"]["ΔAUC medio"].min()
+otros_peor = min(tab_s.loc["gamma"]["ΔAUC medio"].min(), tab_s.loc["profundidad"]["ΔAUC medio"].min())
+t_lam = tab_s.loc["lam"]
+sobre = lambda v: int(t_lam.loc[np.isclose(t_lam.index, v), "pliegues sobre XGBoost"].iat[0])
+medios = [v for v in t_lam.index if 1 <= v <= 100]
+d_et20, x_et20 = fila("etiquetas invertidas", 0.20)
+d_et20g, _ = fila("etiquetas invertidas", 0.20, "Apilamiento global")
+d_lg50, x_lg50 = fila("ruido en el logit", 0.5)
+d_lg50g, _ = fila("ruido en el logit", 0.5, "Apilamiento global")
+d_b8, x_b8 = fila("tasa de positivos", 0.08)
+d_b8g, _ = fila("tasa de positivos", 0.08, "Apilamiento global")
+ll_b8 = otros[(otros.factor == "tasa de positivos") & np.isclose(otros.valor, 0.08) & (otros.modelo == "AJ-KL")]["log_loss"].mean()
+d_n5, x_n5 = fila("filas del historial", 5000)
+d_n5g, _ = fila("filas del historial", 5000, "Apilamiento global")
+d_n10, _ = fila("filas del historial", 10000)
+d_n10g, _ = fila("filas del historial", 10000, "Apilamiento global")
+signo = lambda v: ("+" if v > 0 else "") + coma(v, 4)
+display(Markdown(
+    f"**Lectura.** (1) *Sensibilidad:* en toda la malla de λ, de 0,01 a 1000, el AUC medio cae a lo sumo "
+    f"{coma(abs(lam_peor), 4)} frente a la configuración elegida, y γ y la profundidad lo mueven todavía menos (a lo sumo "
+    f"{coma(abs(otros_peor), 4)}). El modelo no depende de un ajuste fino de sus hiperparámetros, pero el encogimiento sí "
+    f"importa: en los extremos de la malla la ventaja sobre XGBoost se pierde (queda por encima en {sobre(0.01)} de 4 "
+    f"pliegues con λ = 0,01 y en {sobre(1000.0)} de 4 con λ = 1000), mientras que con λ entre 1 y 100 queda por encima en "
+    f"{min(sobre(v) for v in medios)} a {max(sobre(v) for v in medios)} de 4. "
+    f"(2) *Semillas:* la desviación del AUC entre las cinco semillas es de {coma(est_sem['desviación'].mean(), 4)} en promedio "
+    f"por pliegue aunque cambien los hiperparámetros elegidos, y el AJ-KL queda por encima de XGBoost en "
+    f"{int(est_sem['semillas sobre XGBoost'].sum())} de las {int(sem.groupby('pliegue').size().sum())} combinaciones de "
+    f"pliegue y semilla. "
+    f"(3) *Ruido:* con el 20 % de las etiquetas del historial invertidas, el AUC cae {coma(abs(d_et20), 4)}, más que el del "
+    f"apilamiento global ({coma(abs(d_et20g), 4)}): los nodos pequeños aprenden parte del ruido, que es el riesgo de dar pesos "
+    f"locales. Con ruido en las entradas pasa lo contrario: con σ = 0,5 en el logit el AJ-KL pierde {coma(abs(d_lg50), 4)} y el "
+    f"global {coma(abs(d_lg50g), 4)}, porque promediar entre niveles amortigua el ruido de cada modelo base. "
+    f"(4) *Desbalance:* con 8 % de positivos el AUC cae {coma(abs(d_b8), 4)} y el del apilamiento global {coma(abs(d_b8g), 4)}; como "
+    f"caen igual, la pérdida no viene de la jerarquía sino de entrenar el combinador con menos positivos (pasar de 28 % a 8 % "
+    f"descarta cerca de tres de cada cuatro), y la log-loss sube a {coma(ll_b8, 4)} porque las probabilidades se desplazan hacia "
+    f"la tasa del historial reducido. En la práctica, el combinador debe entrenarse con la prevalencia natural. "
+    f"(5) *Tamaño de muestra:* con 5 mil filas el AJ-KL pierde {coma(abs(d_n5), 4)} de AUC frente a usar todo el historial y "
+    f"el global {coma(abs(d_n5g), 4)}; desde 10 mil filas ambos pierden lo mismo ({coma(abs(d_n10), 4)} y {coma(abs(d_n10g), 4)}). Con "
+    f"muy pocas filas el encogimiento no alcanza a compensar el ruido de los nodos y conviene una jerarquía más corta, "
+    f"que es lo que eligió TPE en el pliegue k1, el de historial más pequeño. "
+    f"El AJ-KL queda por debajo de XGBoost sin perturbar en los escenarios más duros ({signo(x_et20)} con 20 % de etiquetas "
+    f"invertidas, {signo(x_b8)} con 8 % de positivos y {signo(x_n5)} con 5 mil filas): su ventaja, que es pequeña, depende de "
+    f"tener un historial suficiente, limpio y con la prevalencia natural."))

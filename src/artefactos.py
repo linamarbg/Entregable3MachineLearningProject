@@ -58,7 +58,7 @@ def prep_ejul() -> ColumnTransformer:
                              sparse_threshold=0.0, verbose_feature_names_out=True)
 
 
-class ConPlatt(BaseEstimator, ClassifierMixin):
+class ConPlatt(ClassifierMixin, BaseEstimator):
     """Añade probabilidades a un clasificador de margen (LinearSVC) con escalado de Platt.
 
     El escalado se ajusta con puntajes fuera de pliegue (validación cruzada estratificada) para no
@@ -154,7 +154,7 @@ def raiz_sys_path():
     return str(C.ROOT / "src") if str(C.ROOT / "src") not in sys.path else None
 
 
-class AJKLProduccion(BaseEstimator, ClassifierMixin):
+class AJKLProduccion(ClassifierMixin, BaseEstimator):
     """Tubería de producción del AJ-KL: modelos base ya entrenados + combinador jerárquico.
 
     Recibe el DataFrame crudo con las columnas de `config.X_COLS`, calcula la probabilidad de cada modelo

@@ -39,10 +39,18 @@ def layout(**_):
     d_ini, d_fin = m["semana_t1"].min().date(), m["semana_t1"].max().date()
     km_max = KM_MAX
     return html.Div([
-        html.H2("Análisis exploratorio", className="mt-3"),
-        html.P("Los filtros de la barra actualizan todos los gráficos de la página. Las distribuciones usan una muestra "
-               "estratificada de 80 mil corredor-semanas (10 mil por año); la serie semanal usa el panel completo.",
-               className="text-secondary"),
+        html.Div(dbc.Row([
+            dbc.Col([
+                html.Div("Sección 2 · Análisis exploratorio", className="sobretitulo"),
+                html.H2("¿Cómo se comportan los corredores?"),
+                html.P("Los filtros de la barra actualizan todos los gráficos de la página. Las distribuciones usan una muestra "
+                       "estratificada de 80 mil corredor-semanas (10 mil por año); la serie semanal usa el panel completo.",
+                       className="mb-0"),
+            ], lg=7, className="d-flex flex-column justify-content-center"),
+            dbc.Col(html.Img(src=dash.get_asset_url("img/banner_eda.svg"),
+                             alt="Ilustración: una lupa revisa barras y una serie semanal sobre surcos de cultivo"),
+                    lg=5, className="d-none d-lg-block"),
+        ]), className="cabecera"),
         html.Div(dbc.Row([
             dbc.Col([dbc.Label("Central mayorista", html_for="f-central"),
                      dcc.Dropdown(id="f-central", options=centrales, multi=True, placeholder="Todas")], xs=12, md=6, xl=3),

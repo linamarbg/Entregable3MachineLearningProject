@@ -101,7 +101,7 @@ class EspecModelo:
 # ----------------------------------------------------------------------------------------------
 # k-NN con votos ponderados por clase (class_weight no existe en KNeighborsClassifier)
 # ----------------------------------------------------------------------------------------------
-class KNNPonderado(BaseEstimator, ClassifierMixin):
+class KNNPonderado(ClassifierMixin, BaseEstimator):
     """k-NN cuyo voto por clase se multiplica por el peso 'balanced' de esa clase.
 
     La probabilidad ajustada es p1' = w1 p1 / (w1 p1 + w0 p0), una transformación monótona de la

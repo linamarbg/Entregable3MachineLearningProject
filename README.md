@@ -2,7 +2,7 @@
 
 Proyecto final de Machine Learning, Doctorado en Ingeniería. Camilo Molina Guerrero y Lina Margarita Buelvas.
 
-* **Informe (Jupyter Book):** <https://camilomolinaguerrero-sudo.github.io/Entregable3MachineLearningProject/>
+* **Informe (Jupyter Book):** <https://linamarbg.github.io/Entregable3MachineLearningProject/>
 * **Dashboard (Render):** <https://sipsa-corredores-e3.onrender.com>
 
 ¿Se puede anticipar, con la información disponible al cierre de una semana, qué corredores municipio → central
@@ -15,9 +15,9 @@ temporal, `src/original_model.py`), el dashboard en Dash y el libro.
 
 | Carpeta | Contenido |
 |---|---|
-| `app.py`, `pages/`, `assets/` | Dashboard multipágina (Contexto, EDA, Modelos) |
+| `app.py`, `pages/`, `assets/` | Dashboard multipágina (Contexto, EDA, Modelos) con mapa de corredores e ilustraciones propias (`assets/img/`) |
 | `src/` | Modelo original, carga de datos, figuras, artefactos, explicación SHAP |
-| `scripts/` | Pipeline numerado (ver capítulo 9 del libro) |
+| `scripts/` | Pipeline numerado (ver capítulo 9 del libro); `25_robustez_ajkl.py` (robustez del modelo original) y `26_mapa_dashboard.py` (datos del mapa) |
 | `artifacts/` | 10 modelos serializados con `metadata.json` y prueba de ida y vuelta |
 | `data/` | Panel, resultados de la validación anidada, revisión de literatura, datos del dashboard |
 | `cuadernos/`, `book/` | Fuentes y Jupyter Book |
@@ -31,3 +31,14 @@ python app.py
 ```
 
 El entorno completo de los experimentos está en `requirements-dev.txt`; el orden de ejecución, en el capítulo 9.
+
+En macOS sin `brew install libomp`, crear el entorno fuera de iCloud y usar el envoltorio que carga el OpenMP de
+scikit-learn:
+
+```bash
+python3 -m venv ~/.venvs/entregable3
+~/.venvs/entregable3/bin/pip install -r requirements-dev.txt
+scripts/ejecutar_mac.sh app.py
+```
+
+Para reconstruir el libro con ese entorno: `PY=~/.venvs/entregable3/bin/python scripts/24_libro.sh`.

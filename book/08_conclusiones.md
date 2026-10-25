@@ -23,7 +23,13 @@
    benchmarks (con el historial reducido a 40 mil filas el AJ-KL sigue por encima de XGBoost en los cuatro
    pliegues donde el historial era mayor). Frente al stacking logístico y al BLP ajustados con el mismo
    historial, el AJ-KL gana por 0,0003 de AUC y 0,0001 de log-loss, pero su ECE es algo peor.
-4. **Un optimizador que se detiene antes del óptimo es una regularización oculta.** La revisión adversarial
+4. **El modelo es estable frente a sus hiperparámetros y a la semilla, pero necesita un historial suficiente y
+   limpio** (sección 5.13). Mover λ entre 0,01 y 1000 cambia el AUC medio a lo sumo 0,0015, y γ o la profundidad a
+   lo sumo 0,0004; repetir la búsqueda TPE con otras cuatro semillas cambia el AUC en una diezmilésima por pliegue.
+   Con ruido en las probabilidades base es más estable que el apilamiento global, pero con el 20 % de las etiquetas
+   invertidas pierde más (−0,0052 frente a −0,0034), porque los nodos pequeños aprenden parte del ruido; con un
+   historial de solo 5 mil filas o con la tasa de positivos reducida al 8 %, queda por debajo de XGBoost.
+5. **Un optimizador que se detiene antes del óptimo es una regularización oculta.** La revisión adversarial
    del código mostró que la primera implementación, con un número fijo de iteraciones, dejaba los pesos lejos
    del minimizador y que la teoría no describía el estimador evaluado. Resolver cada nodo hasta la brecha de
    Frank-Wolfe hizo que λ recuperara su papel y que los pesos y la ablación se puedan interpretar.
@@ -37,11 +43,12 @@
   {cite}`yao2022hierarchical`, usa MCMC con pesos softmax-lineales y no tiene olvido; el más cercano por
   aplicación {cite}`nino2026disruption` es causal, no predictivo.
 * **R2, implementación algorítmica propia: se cumple.** La clase `ApilamientoJerarquicoKL` hereda de
-  `BaseEstimator` y `ClassifierMixin`; el objetivo, el gradiente, la actualización de descenso espejo, la
-  brecha de Frank-Wolfe, el recorrido de la jerarquía y la calibración beta por Newton ponderado están
-  programados con numpy y scipy, con pseudocódigo, seis proposiciones demostradas, complejidad contrastada con
-  tiempos medidos y 20 pruebas unitarias del modelo. Los modelos base son los artefactos del capítulo 3; el
-  combinador no proviene de ningún `import`.
+  `ClassifierMixin` y `BaseEstimator`; el objetivo, el gradiente, la actualización de descenso espejo, la
+  brecha de Frank-Wolfe, el recorrido de la jerarquía y la calibración beta restringida por Newton ponderado
+  están programados con numpy y scipy, con pseudocódigo, diez proposiciones demostradas (seis de optimización y
+  capacidad y cuatro de fundamento estadístico: regla propia, cota de generalización, calibración monótona y
+  consistencia), complejidad contrastada con tiempos medidos y 22 pruebas unitarias del modelo. Los modelos base
+  son los artefactos del capítulo 3; el combinador no proviene de ningún `import`.
 * **R3, superioridad estadística: se cumple frente a los benchmarks del curso con la definición operativa de
   la guía, con matices.** (1) El AUC externo medio del AJ-KL (0,7874) supera al de las siete mejores
   combinaciones. (2) Cinco pruebas distintas rechazan la igualdad frente a XGBoost con p ajustado < 0,05 (0,10
@@ -77,6 +84,9 @@
   que la muestra de 40 mil filas de los benchmarks. El control con 40 mil filas conserva la ventaja sobre
   XGBoost, pero la reduce (ΔAUC medio −0,0007 frente al modelo completo).
 * **SMOTE sobre variables one-hot** en la combinación seleccionada de Naive Bayes (heredado del Entregable 2).
+* **Alcance del estudio de robustez.** Las perturbaciones de la sección 5.13 se aplicaron al historial del
+  combinador con los nueve modelos base fijos; no se reentrenaron los modelos base con datos ruidosos, desbalanceados
+  o reducidos, que es otra fuente de variación del modelo completo.
 
 ## 8.4 Trabajo futuro
 
@@ -93,8 +103,12 @@ of Science, Scopus y ScienceDirect (acceso institucional) para la revisión de l
 Anthropic) como apoyo en la escritura y depuración de código, la automatización de las búsquedas y el cribado
 inicial de registros, la redacción de borradores del texto, la revisión adversarial del código y de las demostraciones
 (que encontró el problema de convergencia corregido en la versión 2.1) y la revisión de consistencia entre
-cifras y resultados. Las decisiones de diseño del modelo, la interpretación de los resultados y las conclusiones fueron
-revisadas por los autores, que verificaron los resultados contra las salidas de los scripts.
+cifras y resultados. En la revisión final, el asistente también apoyó la auditoría del entregable frente a la
+guía, el estudio de robustez del AJ-KL (sección 5.13), la redacción de las proposiciones 7 a 10 y del fundamento
+de las pruebas (sección 6.1), la tabla resumen con intervalos y tiempos, y el rediseño visual del dashboard (paleta,
+ilustraciones propias y mapa de corredores). Las decisiones de diseño del modelo, la interpretación de los
+resultados y las conclusiones fueron revisadas por los autores, que verificaron los resultados contra las salidas
+de los scripts.
 
 | Integrante | Firma |
 |---|---|

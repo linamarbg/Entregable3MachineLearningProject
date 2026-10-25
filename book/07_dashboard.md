@@ -20,8 +20,9 @@ Entregable3MachineLearningProject/
 │   ├── explicacion.py      # valores de Shapley por permutaciones para la explicación local
 │   └── artefactos.py       # tuberías completas, AJKLProduccion, metadatos y esquema de entrada
 ├── artifacts/              # 10 modelos serializados (7 del curso, LightGBM, CatBoost y AJ-KL) (joblib, compress=3), metadata.json y predicciones de referencia
-├── data/dashboard/         # datos livianos: muestra del EDA, series semanales, predicciones 2025, SHAP, pruebas
+├── data/dashboard/         # datos livianos: muestra del EDA, series semanales, mapa, predicciones 2025, SHAP, pruebas
 ├── assets/estilo.css       # paleta de cinco colores y estilos
+├── assets/img/             # ilustraciones propias en SVG (portada, alimentos, EDA, jerarquía del AJ-KL, logotipo)
 ├── tests/                  # pytest: modelo original, explicación local y prueba de ida y vuelta
 ├── book/                   # este libro
 ├── requirements.txt        # versiones exactas para Render
@@ -34,16 +35,28 @@ artefactos de `artifacts/`, que pesan en total unos 23 MB, y lee `data/dashboard
 
 ## 7.2 Secciones y decisiones de diseño
 
-**Contexto.** Una cabecera con la pregunta del proyecto y dos cifras con fuente (7,54 millones de toneladas
+**Contexto.** Una portada con la pregunta del proyecto, dos cifras con fuente (7,54 millones de toneladas
 recibidas por las 32 centrales en 2025 según los microdatos del SIPSA; 27,9 % de corredor-semanas con
-interrupción), tarjetas con el tamaño del panel, la pregunta de investigación y los objetivos, la fuente y el
-periodo de los datos, un diccionario de variables que se puede filtrar, el diagrama de la metodología y una
-sección de limitaciones, ética y sesgos.
+interrupción) y una ilustración del problema: un camión cargado de alimentos que baja por una carretera entre
+montañas andinas hacia una central mayorista, con la red de corredores dibujada en el cielo. Debajo, una banda
+con los alimentos que más llegan a las centrales, tarjetas con el tamaño del panel y el **mapa de los
+corredores** ({numref}`fig-dash-mapa`): cada línea une un municipio de origen con la central que abastece y su
+color es la fracción de semanas con interrupción; el área de cada central es proporcional a las toneladas del
+último año, y un selector permite ver una sola central con su encuadre. El mapa muestra lo que el EDA confirma
+después: los corredores largos, los de poco volumen y los que salen de municipios PDET se interrumpen más. Siguen
+la pregunta de investigación y los objetivos, la fuente y el periodo de los datos, un diccionario de variables
+que se puede filtrar, el diagrama de la metodología y una sección de limitaciones, ética y sesgos.
 
 ```{figure} figuras/dash_contexto.jpg
 :name: fig-dash-contexto
 :width: 95%
-Sección Contexto.
+Sección Contexto: portada con la ilustración del corredor y cifras clave.
+```
+
+```{figure} figuras/dash_mapa.jpg
+:name: fig-dash-mapa
+:width: 95%
+Mapa de los 3.151 corredores regulares coloreados por su tasa histórica de interrupción.
 ```
 
 **EDA.** Cuatro filtros globales en una barra fija (central, departamento de origen, rango de semanas con
@@ -93,9 +106,16 @@ Predicción en vivo con explicación local.
 Subsección del modelo original con el veredicto.
 ```
 
-**Criterios de calidad.** Tema FLATLY de dash-bootstrap-components, paleta de cinco colores (azul oscuro para
-la estructura, azul para XGBoost, naranja para el modelo original, rojo para las interrupciones y gris para el
-resto), plantilla Plotly única con títulos y ejes con unidades, barra de navegación fija y rejilla `dbc.Row` /
+**Identidad visual.** La paleta sale del propio tema: verde montaña (`#1f5135`) para la estructura y los
+títulos, azul río (`#2b6f8e`) para los datos y los benchmarks, ámbar cosecha (`#e39b2d`) para el modelo
+original, rojo tomate (`#c8423b`) para las interrupciones y gris piedra (`#7c858d`) para las referencias, sobre
+un fondo crema. Las ilustraciones (portada, banda de alimentos, cabecera del EDA, diagrama de la jerarquía del
+AJ-KL en la cabecera de Modelos y logotipo) son propias, en SVG: no dependen de fotografías con licencia, pesan
+pocos kilobytes y escalan sin perder nitidez. Cada una tiene texto alternativo. La tipografía es Nunito para los
+títulos e Inter para el texto.
+
+**Criterios de calidad.** Tema FLATLY de dash-bootstrap-components con la paleta anterior,
+plantilla Plotly única con títulos y ejes con unidades, barra de navegación fija y rejilla `dbc.Row` /
 `dbc.Col` que reacomoda los filtros y las tarjetas en tableta ({numref}`fig-dash-tableta`). Los datos y los
 modelos se cargan una sola vez; los callbacks usan `prevent_initial_call` y `no_update` donde corresponde, y
 las excepciones de la predicción se muestran en un `dbc.Alert` sin detener la aplicación. Ningún color es la

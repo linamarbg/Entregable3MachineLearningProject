@@ -76,7 +76,20 @@ def layout(**_):
     esquema = DT.metadata(disp[0])["esquema_entrada"]
     R = DT.resultados()
     return html.Div([
-        html.H2("Modelos", className="mt-3"),
+        html.Div(dbc.Row([
+            dbc.Col([
+                html.Div("Sección 3 · Modelos", className="sobretitulo"),
+                html.H2("Diez modelos y una pregunta: ¿se interrumpirá el corredor?"),
+                html.P("Los siete benchmarks del curso, dos comparadores del estado del arte y el modelo original AJ-KL, que "
+                       "combina las probabilidades de los otros nueve con pesos propios para cada central, grupo de alimentos "
+                       "y corredor; cada nodo se encoge hacia los pesos de su padre. Todos se cargan ya entrenados.",
+                       className="mb-0"),
+            ], lg=7, className="d-flex flex-column justify-content-center"),
+            dbc.Col(html.Img(src=dash.get_asset_url("img/jerarquia_ajkl.svg"),
+                             alt="Diagrama de la jerarquía del AJ-KL: país, centrales, central por grupo de alimentos y "
+                                 "corredores, con el encogimiento de cada nodo hacia su padre"),
+                    lg=5, className="d-none d-lg-block"),
+        ]), className="cabecera"),
         dbc.Tabs([
             dbc.Tab(label="Tabla de líderes", tab_id="t-lideres", children=[
                 tarjeta("Mejor combinación de cada modelo y modelo original (bucle externo de la validación anidada)", [
@@ -86,7 +99,7 @@ def layout(**_):
                         sort_action="native", filter_action="native", page_size=10,
                         style_table={"overflowX": "auto"},
                         style_cell={"fontSize": 12, "padding": "5px", "textAlign": "left", "fontFamily": "Inter, Segoe UI, sans-serif"},
-                        style_header={"backgroundColor": "#eef3f8", "fontWeight": 600},
+                        style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"},
                         style_data_conditional=[{"if": {"filter_query": '{Modelo} contains "AJ-KL"'},
                                                  "backgroundColor": "#fff4e6", "fontWeight": 600}]),
                     html.Div(R.get("lectura_lideres", ""), className="lectura mt-2"),
@@ -144,7 +157,7 @@ def tabla_pruebas():
                                 style_table={"overflowX": "auto"}, style_cell={"fontSize": 12, "padding": "5px",
                                                                                "textAlign": "left", "whiteSpace": "normal",
                                                                                "height": "auto"},
-                                style_header={"backgroundColor": "#eef3f8", "fontWeight": 600})
+                                style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"})
 
 
 def seccion_original(R):
@@ -161,7 +174,7 @@ def seccion_original(R):
             dash_table.DataTable(data=afines.to_dict("records"), columns=[{"name": c, "id": c} for c in afines.columns],
                                  style_cell={"fontSize": 12, "textAlign": "left", "whiteSpace": "normal", "height": "auto",
                                              "padding": "5px"},
-                                 style_header={"backgroundColor": "#eef3f8", "fontWeight": 600}) if len(afines) else html.Div()]),
+                                 style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"}) if len(afines) else html.Div()]),
         tarjeta("Pesos del combinador por central mayorista (pliegue final)", [
             dcc.Graph(figure=PL.mapa_pesos(DT.tabla("pesos_central")) if len(DT.tabla("pesos_central")) else PL.vacia()),
             html.Div("Cada fila es una central y cada columna un modelo base; el color es el peso del modelo en el pool de esa "
@@ -173,7 +186,7 @@ def seccion_original(R):
             dbc.Col(tarjeta("Ablación: aporte de cada componente (ΔAUC frente al modelo completo)", [
                 dash_table.DataTable(data=abl.to_dict("records"), columns=[{"name": c, "id": c} for c in abl.columns],
                                      sort_action="native", style_cell={"fontSize": 12, "padding": "4px", "textAlign": "left"},
-                                     style_header={"backgroundColor": "#eef3f8", "fontWeight": 600}) if len(abl) else html.Div("Pendiente."),
+                                     style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"}) if len(abl) else html.Div("Pendiente."),
                 html.Div(R.get("lectura_ablacion", ""), className="lectura original mt-2")]), lg=6),
         ]),
         tarjeta("Pruebas unitarias y tamaño del efecto", [dcc.Markdown(R.get("pruebas_unitarias", ""))]),

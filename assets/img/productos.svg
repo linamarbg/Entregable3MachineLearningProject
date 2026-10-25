@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 84" role="img" aria-labelledby="pr-t">
+  <title id="pr-t">Alimentos que llegan a las centrales mayoristas: tomate, plátano, papa, aguacate, zanahoria, mazorca, naranja y cebolla</title>
+  <!-- tomate -->
+  <g transform="translate(60 46)">
+    <circle r="24" fill="#c8423b"/>
+    <ellipse cx="-8" cy="-8" rx="6" ry="4" fill="#ffffff" opacity=".35"/>
+    <path d="M0 -24 L5 -32 L4 -22 L13 -27 L6 -19 L16 -18 L5 -15 L0 -10 L-5 -15 L-16 -18 L-6 -19 L-13 -27 L-4 -22 L-5 -32 Z" fill="#3d7f52"/>
+  </g>
+  <!-- plátano -->
+  <g transform="translate(180 46)">
+    <path d="M-26 -6 C -18 18 18 24 30 4 C 16 12 -6 8 -18 -12 Z" fill="#f2c94c" stroke="#d6a92f" stroke-width="2"/>
+    <path d="M-22 -16 C -10 6 20 10 30 -8 C 16 -2 -4 -6 -14 -22 Z" fill="#f5d46a" stroke="#d6a92f" stroke-width="2"/>
+    <path d="M-20 -20 L-26 -30 L-14 -24 Z" fill="#6b4f2f"/>
+  </g>
+  <!-- papa -->
+  <g transform="translate(300 48)">
+    <path d="M-26 -4 C -26 -20 -6 -24 8 -20 C 26 -16 30 0 22 12 C 14 24 -8 24 -18 16 C -26 10 -26 4 -26 -4 Z" fill="#b8875a"/>
+    <g fill="#8a5f3b"><circle cx="-10" cy="-8" r="2"/><circle cx="8" cy="-10" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="-6" cy="10" r="2"/></g>
+  </g>
+  <!-- aguacate -->
+  <g transform="translate(420 46) rotate(-18)">
+    <path d="M0 -30 C 14 -30 22 -8 24 8 C 26 24 12 32 0 32 C -12 32 -26 24 -24 8 C -22 -8 -14 -30 0 -30 Z" fill="#3f6e2a"/>
+    <path d="M0 -22 C 10 -22 16 -4 18 8 C 19 20 9 26 0 26 C -9 26 -19 20 -18 8 C -16 -4 -10 -22 0 -22 Z" fill="#c4d86f"/>
+    <circle cx="0" cy="10" r="10" fill="#8a5a3c"/>
+    <circle cx="-3" cy="6" r="3" fill="#ffffff" opacity=".3"/>
+  </g>
+  <!-- zanahoria -->
+  <g transform="translate(540 50) rotate(30)">
+    <path d="M-10 -16 L10 -16 L2 32 Q 0 36 -2 32 Z" fill="#ef8a2b"/>
+    <g stroke="#c96a16" stroke-width="2" stroke-linecap="round"><line x1="-6" y1="-6" x2="0" y2="-6"/><line x1="2" y1="4" x2="6" y2="4"/><line x1="-4" y1="14" x2="1" y2="14"/></g>
+    <path d="M0 -16 C -12 -30 -8 -36 -2 -40 C 0 -32 0 -24 0 -16 Z M0 -16 C 10 -30 16 -32 20 -30 C 12 -26 6 -20 0 -16 Z M0 -16 C -4 -28 2 -38 8 -40 C 6 -30 4 -22 0 -16 Z" fill="#4e9a3a"/>
+  </g>
+  <!-- mazorca -->
+  <g transform="translate(660 46) rotate(-25)">
+    <ellipse rx="13" ry="30" fill="#f2c94c"/>
+    <g fill="#e3b23c">
+      <circle cx="-5" cy="-18" r="2.6"/><circle cx="5" cy="-18" r="2.6"/><circle cx="-6" cy="-8" r="2.6"/><circle cx="6" cy="-8" r="2.6"/>
+      <circle cx="-6" cy="2" r="2.6"/><circle cx="6" cy="2" r="2.6"/><circle cx="-5" cy="12" r="2.6"/><circle cx="5" cy="12" r="2.6"/><circle cx="0" cy="22" r="2.6"/>
+    </g>
+    <path d="M-2 30 C -24 14 -22 -14 -14 -26 C -14 -6 -10 14 2 30 Z" fill="#5fae45"/>
+    <path d="M2 30 C 24 14 22 -14 14 -26 C 14 -6 10 14 -2 30 Z" fill="#4e9a3a"/>
+  </g>
+  <!-- naranja -->
+  <g transform="translate(780 48)">
+    <circle r="23" fill="#f08c2b"/>
+    <circle cx="-7" cy="-7" r="5" fill="#ffffff" opacity=".3"/>
+    <path d="M0 -23 C 6 -34 16 -34 22 -30 C 14 -26 8 -24 0 -23 Z" fill="#4e9a3a"/>
+    <circle cy="-22" r="2.4" fill="#6b4f2f"/>
+  </g>
+  <!-- cebolla -->
+  <g transform="translate(900 50)">
+    <path d="M0 -30 C 4 -20 22 -12 22 6 C 22 22 10 30 0 30 C -10 30 -22 22 -22 6 C -22 -12 -4 -20 0 -30 Z" fill="#b5536f"/>
+    <path d="M0 -24 C 2 -12 12 -4 12 8 C 12 20 6 26 0 26" fill="none" stroke="#e7a3b6" stroke-width="2"/>
+    <path d="M0 -24 C -2 -12 -12 -4 -12 8 C -12 20 -6 26 0 26" fill="none" stroke="#e7a3b6" stroke-width="2"/>
+    <path d="M-2 -30 L0 -40 L2 -30 Z" fill="#4e9a3a"/>
+  </g>
+</svg>

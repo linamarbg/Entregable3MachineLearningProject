@@ -27,7 +27,9 @@ F(w) − F*: los pesos devueltos son el minimizador de J_r salvo la tolerancia.
 
 Calibración (opcional): un pool lineal de pronósticos calibrados no está calibrado salvo en casos
 triviales (Ranjan y Gneiting, 2010); por eso, después del pool se ajusta una calibración beta,
-σ(a ln q − b ln(1 − q) + c), por Newton-Raphson ponderado con los mismos pesos de olvido.
+σ(a ln q − b ln(1 − q) + c), por Newton-Raphson ponderado con los mismos pesos de olvido. Se exige
+a, b ≥ 0 (Kull et al., 2017): si un coeficiente sale negativo, se reajusta sin ese rasgo. Así el mapa es
+no decreciente en q, conserva el orden de las predicciones y no cambia el AUC (proposición 9).
 
 Propiedades (sección 5.3 del libro): convexidad estricta y unicidad del óptimo por nodo con λ > 0
 (con λ = 0 el óptimo puede no ser único); casos límite (λ → 0⁺: el apilamiento local más cercano al
@@ -200,11 +202,35 @@ def rasgos_beta(q: np.ndarray) -> np.ndarray:
     return np.c_[np.log(q), -np.log1p(-q)]
 
 
+def calibracion_beta(q, y, peso) -> np.ndarray | None:
+    """Coeficientes (c, a, b) de la calibración beta σ(c + a ln q − b ln(1 − q)) con a, b ≥ 0.
+
+    Los dos rasgos son crecientes en q, así que con a, b ≥ 0 (y a + b > 0) el mapa es creciente y conserva
+    el orden de las predicciones. Si la regresión logística ponderada da un coeficiente negativo, se
+    reajusta sin ese rasgo (Kull et al., 2017). Si no queda ninguno, se devuelve None: sin calibración.
+    """
+    F = rasgos_beta(q)
+    activos = [0, 1]
+    while activos:
+        w = logistica_newton_ponderada(F[:, activos], y, peso)
+        negativos = [j for j, c in zip(activos, w[1:]) if c < 0]
+        if not negativos:
+            coef = np.zeros(3)
+            coef[0] = w[0]
+            coef[1 + np.asarray(activos)] = w[1:]
+            return coef
+        activos = [j for j in activos if j not in negativos]
+    return None
+
+
 # ----------------------------------------------------------------------------------------------
 # Estimador compatible con scikit-learn
 # ----------------------------------------------------------------------------------------------
-class ApilamientoJerarquicoKL(BaseEstimator, ClassifierMixin):
+class ApilamientoJerarquicoKL(ClassifierMixin, BaseEstimator):
     """Apilamiento jerárquico con encogimiento KL y olvido temporal (AJ-KL).
+
+    El mixin va antes que BaseEstimator: desde scikit-learn 1.6 ese orden es el que conserva la etiqueta de
+    clasificador (la usan `is_classifier` y los scorers como `roc_auc` en `cross_val_score`).
 
     Parameters
     ----------
@@ -318,11 +344,10 @@ class ApilamientoJerarquicoKL(BaseEstimator, ClassifierMixin):
                 self.pesos_[l][int(c)] = w
                 self.n_nodo_[l][int(c)] = len(idx)
                 self.historial_[(l, int(c))] = hist
-        # calibración beta ponderada sobre el pool
+        # calibración beta ponderada sobre el pool, con a, b ≥ 0 para que sea monótona
         self.w_cal_ = None
         if self.calibrar:
-            q = self._pool(P, G)
-            self.w_cal_ = logistica_newton_ponderada(rasgos_beta(q), y, a)
+            self.w_cal_ = calibracion_beta(self._pool(P, G), y, a)
         return self
 
     def pesos_por_fila(self, X) -> np.ndarray:

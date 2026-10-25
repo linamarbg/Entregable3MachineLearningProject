@@ -26,8 +26,8 @@ ORDEN = ["ajkl_original", "xgboost", "random_forest", "svm", "regresion_logistic
 NOMBRES = {"ajkl_original": "AJ-KL (original)", "xgboost": "XGBoost", "random_forest": "Random Forest", "svm": "SVM",
            "regresion_logistica": "Regresión logística", "knn": "KNN", "decision_tree": "Decision Tree",
            "naive_bayes": "Naive Bayes", "lightgbm": "LightGBM (estado del arte)", "catboost": "CatBoost (estado del arte)"}
-LIBRO = os.environ.get("URL_LIBRO", "https://camilomolinaguerrero-sudo.github.io/Entregable3MachineLearningProject/")
-REPO = "https://github.com/camilomolinaguerrero-sudo/Entregable3MachineLearningProject"
+LIBRO = os.environ.get("URL_LIBRO", "https://linamarbg.github.io/Entregable3MachineLearningProject/")
+REPO = "https://github.com/linamarbg/Entregable3MachineLearningProject"
 
 
 def _parquet(nombre: str) -> pd.DataFrame:
@@ -80,6 +80,12 @@ def diccionario() -> pd.DataFrame:
 @lru_cache(maxsize=None)
 def toneladas() -> pd.DataFrame:
     return _parquet("toneladas_mercado_anio")
+
+
+@lru_cache(maxsize=None)
+def mapa() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Corredores y centrales con coordenadas para el mapa del contexto (scripts/26_mapa_dashboard.py)."""
+    return _parquet("mapa_corredores"), _parquet("mapa_centrales")
 
 
 @lru_cache(maxsize=None)
