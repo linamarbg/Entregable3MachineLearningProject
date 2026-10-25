@@ -179,7 +179,9 @@ def correlaciones(central, depto, ini, fin, km):
     if len(m) < 50:
         return PL.vacia(), "", PL.vacia(), ""
     vars_ = [v for v in NUMERICAS if m[v].nunique() > 1]
-    c = m[vars_].corr(method="spearman")
+    # Spearman como Pearson sobre los rangos de cada variable: con faltantes difiere de la versión por pares de
+    # pandas en menos de 0,002, pero es unas 20 veces más rápida (en el plan gratuito de Render tardaba 30 s)
+    c = m[vars_].rank().corr()
     v = c.to_numpy(copy=True)
     np.fill_diagonal(v, 0)
     i, j = np.unravel_index(np.nanargmax(np.abs(v)), v.shape)
@@ -196,7 +198,7 @@ def correlaciones(central, depto, ini, fin, km):
     l2 = ("Ninguna variable tiene faltantes en la selección." if total.max() == 0 else
           f"La variable con más faltantes es «{ETQ.get(total.idxmax(), total.idxmax())}» ({total.max() * 100:.2f} %); se "
           "imputa con la mediana del entrenamiento dentro de la tubería, sin usar información de validación.")
-    return PL.correlacion(m, vars_, ETQ), l1, PL.mapa_faltantes(tabla, ETQ), l2
+    return PL.correlacion(c, ETQ), l1, PL.mapa_faltantes(tabla, ETQ), l2
 
 
 @callback(Output("g-atip", "figure"), Output("l-atip", "children"), Input("s-atip", "value"), *FILTROS)

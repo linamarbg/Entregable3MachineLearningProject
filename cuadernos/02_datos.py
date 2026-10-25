@@ -110,8 +110,9 @@ display((100 * t["tasa"]).round(1).to_frame("Tasa de interrupción (%)").assign(
 numericas = [c for c in ["ratio_t", "ratio_t_1", "log_base8", "cv8", "pend8_rel", "activas8", "activas26", "n_envios8",
                          "n_alimentos8", "antig_sem", "dist_km", "frac_caida_mercado_t", "frac_caida_nacional_t",
                          "frac_caida_mpio_t", "frac_caida_vec_t", "tasa_int_vec26", "tasa_int_mpio26", "ratio_t1"]]
-PL.correlacion(m, numericas, ETQ).show()
-c = m[numericas].corr(method="spearman")["ratio_t1"].drop("ratio_t1").abs().sort_values(ascending=False)
+rho = m[numericas].corr(method="spearman")
+PL.correlacion(rho, ETQ).show()
+c = rho["ratio_t1"].drop("ratio_t1").abs().sort_values(ascending=False)
 display(Markdown(f"Ninguna variable se asocia fuertemente con la razón de la semana siguiente: la mayor correlación de "
                  f"Spearman en valor absoluto es {c.iloc[0]:.2f} («{ETQ.get(c.index[0])}»). El abastecimiento de t+1 depende "
                  "de choques que no se observan en t, y ese techo de información limita a todos los modelos."))

@@ -2,6 +2,8 @@
 única, títulos y ejes con unidades."""
 from __future__ import annotations
 
+import textwrap
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -42,6 +44,11 @@ def vacia(mensaje: str = "Sin datos para los filtros elegidos") -> go.Figure:
     fig.add_annotation(text=mensaje, showarrow=False, x=0.5, y=0.5, xref="paper", yref="paper", font=dict(size=14, color=GRIS))
     fig.update_xaxes(visible=False).update_yaxes(visible=False)
     return fig
+
+
+def partir(texto: str, ancho: int = 26) -> str:
+    """Parte una etiqueta larga en líneas para que quepa en una tarjeta angosta."""
+    return "<br>".join(textwrap.wrap(texto, ancho))
 
 
 # ------------------------------------------------------------------------------- EDA
@@ -112,11 +119,11 @@ def bivariado(m: pd.DataFrame, x: str, y: str, color: str, etiquetas: dict) -> g
     return fig
 
 
-def correlacion(m: pd.DataFrame, variables: list[str], etiquetas: dict) -> go.Figure:
-    if m.empty:
+def correlacion(c: pd.DataFrame, etiquetas: dict) -> go.Figure:
+    """Mapa de calor de una matriz de correlación ya calculada (filas y columnas con los nombres de las variables)."""
+    if c.empty:
         return vacia()
-    c = m[variables].corr(method="spearman")
-    nombres = [etiquetas.get(v, v) for v in variables]
+    nombres = [etiquetas.get(v, v) for v in c.columns]
     fig = go.Figure(go.Heatmap(z=c.values, x=nombres, y=nombres, zmin=-1, zmax=1, colorscale=[[0, AZUL_RIO], [0.5, "#f7f4ec"], [1, TOMATE]],
                                colorbar=dict(title="ρ"), hovertemplate="%{y}<br>%{x}<br>ρ = %{z:.2f}<extra></extra>"))
     fig.update_layout(title="Correlación de Spearman entre variables numéricas", height=620)
@@ -131,7 +138,7 @@ def mapa_faltantes(falt: pd.DataFrame, etiquetas: dict) -> go.Figure:
     f = f[(f > 0).any(axis=1)]
     if f.empty:
         return vacia("Ninguna variable del modelo tiene valores faltantes")
-    fig = go.Figure(go.Heatmap(z=f.values, x=f.columns, y=[etiquetas.get(v, v) for v in f.index], colorscale=ESCALA_AMBAR,
+    fig = go.Figure(go.Heatmap(z=f.values, x=f.columns, y=[partir(etiquetas.get(v, v)) for v in f.index], colorscale=ESCALA_AMBAR,
                                colorbar=dict(title="%"), hovertemplate="%{y}<br>%{x}: %{z:.2f} % faltante<extra></extra>"))
     fig.update_layout(title="Valores faltantes por variable y año (% de filas)", height=360)
     fig.update_xaxes(title="Año de la semana objetivo")
