@@ -1,6 +1,6 @@
 # 7. Dashboard y despliegue
 
-El dashboard está publicado en **<https://sipsa-corredores-e3.onrender.com>**. Es una aplicación multipágina
+El dashboard está publicado en **<https://sipsa-corredores-e3-2uw9.onrender.com>**. Es una aplicación multipágina
 de Dash (`use_pages=True`) con tres secciones, Contexto, EDA y Modelos, pensada para que una persona sin
 formación en aprendizaje automático entienda el problema, explore los datos y use los modelos.
 

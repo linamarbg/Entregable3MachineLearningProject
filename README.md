@@ -3,7 +3,7 @@
 Proyecto final de Machine Learning, Doctorado en Ingeniería. Camilo Molina Guerrero y Lina Margarita Buelvas.
 
 * **Informe (Jupyter Book):** <https://linamarbg.github.io/Entregable3MachineLearningProject/>
-* **Dashboard (Render):** <https://sipsa-corredores-e3.onrender.com>
+* **Dashboard (Render):** <https://sipsa-corredores-e3-2uw9.onrender.com>
 
 ¿Se puede anticipar, con la información disponible al cierre de una semana, qué corredores municipio → central
 mayorista tendrán la semana siguiente menos de la mitad de su abastecimiento habitual? El repositorio contiene

@@ -10,7 +10,7 @@
 :gutter: 2
 
 :::{grid-item-card} 📊 Dashboard
-:link: https://sipsa-corredores-e3.onrender.com
+:link: https://sipsa-corredores-e3-2uw9.onrender.com
 Contexto, EDA y modelos, con predicción en vivo
 :::
 

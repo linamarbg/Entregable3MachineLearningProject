@@ -68,7 +68,7 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 | Requisito | Estado | Evidencia |
 |---|---|---|
 | `requirements.txt` con versiones exactas, `render.yaml`, `gunicorn app:server` | ✅ | Raíz del repositorio |
-| URL pública funcional con los cambios de esta revisión | ⏳ | El proyecto se publica desde la cuenta de Lina (`linamarbg`): hay que crear el servicio en Render con `render.yaml` y actualizar la URL del dashboard |
+| URL pública funcional con los cambios de esta revisión | 🔧 | Publicado desde la cuenta de Lina (`linamarbg`) en <https://sipsa-corredores-e3-2uw9.onrender.com> (servicio creado con `render.yaml`; se redespliega con cada `git push` a `main`) |
 
 ## Bloque G. Jupyter Book (sección 9)
 
@@ -82,12 +82,8 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 ## Acciones pendientes de los autores
 
 1. Si llegan las observaciones del docente al Entregable 2, agregar una fila por observación en la tabla de trazabilidad.
-2. Publicar desde la cuenta de GitHub de Lina (`linamarbg`); el repositorio de Camilo queda como remoto `camilo`:
-   * en GitHub, crear el repositorio público vacío `Entregable3MachineLearningProject` (sin README ni licencia);
-   * `git push -u origin main` desde la carpeta del proyecto;
-   * en Render (entrar con GitHub), New → Blueprint, elegir ese repositorio y aplicar `render.yaml`; anotar la URL
-     que asigna y reemplazar `https://sipsa-corredores-e3.onrender.com` en `README.md`, `book/intro.md` y
-     `book/07_dashboard.md`; recompilar el libro (`jupyter-book build book/`), hacer commit y `git push`.
+2. Código y dashboard: hechos. El repositorio es <https://github.com/linamarbg/Entregable3MachineLearningProject> (el de
+   Camilo queda como remoto `camilo`) y Render redespliega el dashboard con cada `git push` a `main`.
 3. Publicar el libro: `~/.venvs/entregable3/bin/ghp-import -n -p -f book/_build/html` y, en GitHub, Settings → Pages →
    Deploy from a branch → `gh-pages` / `(root)`. Queda en <https://linamarbg.github.io/Entregable3MachineLearningProject/>.
 4. Firmar la declaración de la sección 8.5.
