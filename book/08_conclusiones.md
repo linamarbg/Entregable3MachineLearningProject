@@ -110,7 +110,7 @@ ilustraciones propias y mapa de corredores). Las decisiones de diseño del model
 resultados y las conclusiones fueron revisadas por los autores, que verificaron los resultados contra las salidas
 de los scripts.
 
-| Integrante | Firma |
-|---|---|
-| Camilo Molina Guerrero | ____________________ |
-| Lina Margarita Buelvas | ____________________ |
+| Integrante | Firma | Fecha |
+|---|---|---|
+| Camilo Molina Guerrero | *Camilo Molina Guerrero* | 25 de octubre de 2026 |
+| Lina Margarita Buelvas | *Lina Margarita Buelvas* | 25 de octubre de 2026 |

@@ -76,15 +76,14 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 |---|---|---|
 | Capítulos 0 a 9 del cuadro 4, `_config.yml`, `_toc.yml`, `references.bib` | ✅ | `book/` (seis referencias nuevas en `references.bib`) |
 | Celdas ejecutables, figuras con título y ejes, ecuaciones numeradas | ✅ | Cuadernos reejecutados en esta revisión |
-| Construcción sin errores y publicación | 🔧 ⏳ | Se reconstruyó en local; falta publicarlo en GitHub Pages (`ghp-import`) |
-| Declaración de autoría y uso de IA, firmada | ⏳ | Sección 8.5, actualizada con esta revisión; faltan las firmas |
+| Construcción sin errores y publicación | ✅ | `jupyter-book build book/` sin advertencias; publicado en <https://linamarbg.github.io/Entregable3MachineLearningProject/> |
+| Declaración de autoría y uso de IA, firmada | ✅ | Sección 8.5, actualizada con esta revisión y firmada con los nombres de los dos autores (25 de octubre de 2026) |
 
 ## Acciones pendientes de los autores
 
 1. Si llegan las observaciones del docente al Entregable 2, agregar una fila por observación en la tabla de trazabilidad.
 2. Código y dashboard: hechos. El repositorio es <https://github.com/linamarbg/Entregable3MachineLearningProject> (el de
    Camilo queda como remoto `camilo`) y Render redespliega el dashboard con cada `git push` a `main`.
-3. Publicar el libro: `~/.venvs/entregable3/bin/ghp-import -n -p -f book/_build/html` y, en GitHub, Settings → Pages →
-   Deploy from a branch → `gh-pages` / `(root)`. Queda en <https://linamarbg.github.io/Entregable3MachineLearningProject/>.
-4. Firmar la declaración de la sección 8.5.
-5. Actualizar las diapositivas de la sustentación con la sección 5.13, las proposiciones 7 a 10 y el mapa del dashboard.
+3. Libro: publicado en GitHub Pages (rama `gh-pages`). Después de cualquier cambio, recompilar y repetir
+   `~/.venvs/entregable3/bin/ghp-import -n -p -f book/_build/html`.
+4. Actualizar las diapositivas de la sustentación con la sección 5.13, las proposiciones 7 a 10 y el mapa del dashboard.
