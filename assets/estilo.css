@@ -94,3 +94,31 @@ label, .form-label { font-weight: 700; font-size: .84rem; color: var(--verde); }
   body { padding-top: 62px; }
   .hero { padding: 18px; }
 }
+
+/* secciones de la sustentación: ecuaciones, guía de la rúbrica y veredictos */
+.md-sustentacion { font-size: .92rem; line-height: 1.5; }
+.md-sustentacion p:last-child, .md-sustentacion ul:last-child, .md-sustentacion ol:last-child { margin-bottom: 0; }
+.md-sustentacion table { width: 100%; font-size: .84rem; margin-bottom: .6rem; }
+.md-sustentacion th { background: #e9f2ea; color: var(--verde); padding: 5px 7px; }
+.md-sustentacion td { border-top: 1px solid var(--borde); padding: 5px 7px; vertical-align: top; }
+.md-sustentacion code { color: #7a3f0c; background: #fdf3e1; border-radius: 4px; padding: 0 3px; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 4px 0; }
+.tabla-md td, .tabla-md th { font-size: .84rem; vertical-align: top; }
+.tabla-md th { background: #e9f2ea !important; color: var(--verde); }
+.tabla-md p { margin-bottom: 0; }
+.guia-rubrica { border: 1px dashed var(--ambar); background: #fffaf0; color: #5b3a07; font-size: .9rem; border-radius: 12px; }
+.tarjeta-veredicto { border-top: 4px solid var(--ambar); }
+.tarjeta-veredicto .card-header { border-top-color: var(--ambar); }
+.accordion-button { font-weight: 700; color: var(--verde); }
+.accordion-button:not(.collapsed) { background: #f3f7f1; color: var(--verde); box-shadow: none; }
+.recorrido .badge { background: var(--verde) !important; }
+.recorrido td { vertical-align: middle; font-size: .9rem; }
+.recorrido-card .card-header { border-top-color: var(--ambar); }
+.nav-tabs { flex-wrap: wrap; }
+@media (max-width: 768px) {
+  .nav-tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
+  .nav-tabs .nav-link { white-space: nowrap; }
+}
+#formulacion { scroll-margin-top: 84px; }
+#fuga { scroll-margin-top: 250px; }
+@media (max-width: 768px) { #fuga { scroll-margin-top: 80px; } }

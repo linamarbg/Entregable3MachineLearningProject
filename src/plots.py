@@ -25,7 +25,7 @@ EVENTOS = [("2020-03-23", "2020-05-31", "Confinamiento"), ("2021-04-28", "2021-0
 
 pio.templates["proyecto"] = go.layout.Template(layout=go.Layout(
     font=dict(family="Inter, Segoe UI, Helvetica, Arial, sans-serif", size=12, color="#24302a"),
-    paper_bgcolor="white", plot_bgcolor="white", colorway=PALETA,
+    paper_bgcolor="white", plot_bgcolor="white", colorway=PALETA, separators=",.",   # coma decimal y punto de miles
     xaxis=dict(gridcolor="#efece4", zerolinecolor="#dcd6c8", linecolor="#cfc8b6", automargin=True),
     yaxis=dict(gridcolor="#efece4", zerolinecolor="#dcd6c8", linecolor="#cfc8b6", automargin=True),
     margin=dict(l=55, r=20, t=70, b=50), hoverlabel=dict(font_size=12),
@@ -76,7 +76,7 @@ def balance_clases(m: pd.DataFrame) -> go.Figure:
         return vacia()
     c = m["interrupcion_t1"].map({0: "Sin interrupción", 1: "Interrupción"}).value_counts()
     fig = go.Figure(go.Bar(x=c.index, y=100 * c.values / c.sum(), marker_color=[GRIS if i.startswith("Sin") else ROJO for i in c.index],
-                           text=[f"{100 * v / c.sum():.1f} %<br>({v:,} filas)".replace(",", ".") for v in c.values],
+                           text=[f"{100 * v / c.sum():.1f}".replace(".", ",") + f" %<br>({v:,} filas)".replace(",", ".") for v in c.values],
                            textposition="outside", hovertemplate="%{x}: %{y:.1f} %<extra></extra>"))
     fig.update_layout(title="Balance de clases del objetivo", height=330, showlegend=False)
     fig.update_yaxes(title="Corredor-semanas (%)", range=[0, 100]).update_xaxes(title="")
@@ -344,4 +344,107 @@ def mapa_corredores(corr: pd.DataFrame, cent: pd.DataFrame, central: str | None 
                       height=560, margin=dict(l=0, r=0, t=10, b=0),
                       legend=dict(orientation="v", x=0.01, y=0.99, xanchor="left", yanchor="top",
                                   bgcolor="rgba(255,255,255,0.85)", bordercolor="#dcd6c8", borderwidth=1, font=dict(size=11)))
+    return fig
+
+
+# ------------------------------------------------------------------------------- sustentación (rúbrica)
+def linea_tiempo_pliegues(pl: pd.DataFrame) -> go.Figure:
+    """Bloques de la validación anidada: entrenamiento, hueco y validación (o prueba 2025) de cada pliegue."""
+    fig = go.Figure()
+    filas = list(pl["pliegue"])[::-1]
+    for (nombre, color), (ini, fin) in zip([("Entrenamiento", PIEDRA), ("Hueco (8 semanas; 10 antes de 2025)", "#e8e2d4"), ("Validación externa / prueba 2025", AMBAR)],
+                                          [("inicio_entrenamiento", "fin_entrenamiento"), ("fin_entrenamiento", "inicio_validacion"),
+                                           ("inicio_validacion", "fin_validacion")]):
+        dur = (pd.to_datetime(pl[fin]) - pd.to_datetime(pl[ini])).dt.days * 86_400_000
+        fig.add_bar(y=pl["pliegue"], x=dur, base=pd.to_datetime(pl[ini]), orientation="h", name=nombre, marker_color=color,
+                    hovertemplate="%{y}: %{base|%d-%m-%Y} a " + pd.to_datetime(pl[fin]).dt.strftime("%d-%m-%Y") + "<extra>" + nombre + "</extra>")
+    fig.update_layout(barmode="overlay", title="Validación anidada temporal: cada bloque externo valida 52 semanas que el modelo no vio",
+                      height=330, bargap=0.35)
+    fig.update_yaxes(categoryorder="array", categoryarray=filas, title=None)
+    fig.update_xaxes(type="date", title="Semana objetivo")
+    return fig
+
+
+def encogimiento_nodos(nod: pd.DataFrame) -> go.Figure:
+    """KL de los pesos de cada nodo hacia su padre frente a su tamaño de muestra efectivo (proposición 5)."""
+    fig = go.Figure()
+    for nivel, color in [("central", VERDE), ("central × grupo", AZUL_RIO), ("corredor", AMBAR)]:
+        g = nod[nod["nivel"] == nivel]
+        if len(g):
+            fig.add_scatter(x=g["S_r"], y=g["kl_padre"], mode="markers", name=f"{nivel} ({len(g)} nodos)",
+                            marker=dict(color=color, size=6 if nivel == "corredor" else 8, opacity=0.55 if nivel == "corredor" else 0.85),
+                            customdata=np.c_[g["n"], g["mu"]],
+                            hovertemplate="S_r = %{x:,.0f} · n = %{customdata[0]:,}<br>μ_r = %{customdata[1]:.2e}<br>"
+                                          "KL(w_r ‖ padre) = %{y:.2e}<extra></extra>")
+    fig.update_xaxes(type="log", title="Tamaño de muestra efectivo del nodo, S_r (escala log)")
+    fig.update_yaxes(type="log", title="KL(w_r ‖ w_padre) (escala log)")
+    fig.update_layout(title="Encogimiento en los datos: los nodos con poca muestra se quedan cerca de su padre", height=420)
+    return fig
+
+
+def complejidad_tiempos(t: pd.DataFrame) -> go.Figure:
+    pend = float(np.polyfit(np.log(t["n"]), np.log(t["segundos_fit"]), 1)[0])
+    fig = go.Figure(go.Scatter(x=t["n"], y=t["segundos_fit"], mode="lines+markers", line=dict(color=AMBAR, width=2.5),
+                               hovertemplate="n = %{x:,}<br>%{y:.2f} s<extra></extra>", name="AJ-KL"))
+    fig.update_xaxes(type="log", title="Filas del historial del combinador (escala log)")
+    fig.update_yaxes(type="log", title="Segundos de entrenamiento (escala log)")
+    fig.update_layout(title=f"Entrenamiento frente a n (pendiente log-log {pend:.2f})".replace(".", ","), height=330, showlegend=False)
+    return fig
+
+
+def sensibilidad(sens: pd.DataFrame, auc_xgb: float) -> go.Figure:
+    fig = make_subplots(rows=1, cols=3, subplot_titles=["Encogimiento λ (escala log)", "Olvido γ", "Profundidad de la jerarquía"],
+                        horizontal_spacing=0.08)
+    for j, (f, eje) in enumerate([("lam", "log"), ("gamma", "linear"), ("profundidad", "linear")], start=1):
+        g = sens[sens["factor"] == f].sort_values("valor")
+        fig.add_scatter(x=g["valor"], y=g["auc_media"], mode="lines+markers", line=dict(color=AMBAR, width=2.5),
+                        error_y=dict(type="data", symmetric=False, array=g["auc_max"] - g["auc_media"],
+                                     arrayminus=g["auc_media"] - g["auc_min"], color=AMBAR, thickness=1),
+                        name="AJ-KL (media y rango de k1-k4)", showlegend=j == 1, row=1, col=j)
+        fig.add_hline(y=auc_xgb, line_dash="dot", line_color=AZUL_RIO, row=1, col=j)
+        fig.update_xaxes(type=eje, row=1, col=j)
+    fig.add_scatter(x=[None], y=[None], mode="lines", line=dict(color=AZUL_RIO, dash="dot"), name="XGBoost (media k1-k4)")
+    fig.update_yaxes(title="AUC en el bloque externo", row=1, col=1)
+    fig.update_layout(title="Sensibilidad a los hiperparámetros propios (se mueve uno a la vez)", height=420,
+                      legend=dict(orientation="h", yanchor="top", y=-0.16, x=0), margin=dict(t=80, b=90))
+    return fig
+
+
+def barras_delta(df: pd.DataFrame, etiqueta: str, valor: str, titulo: str, alto: int = 360) -> go.Figure:
+    """Barras horizontales de una diferencia (AJ-KL − referencia): ámbar si gana el AJ-KL, gris si pierde."""
+    d = df.sort_values(valor)
+    fig = go.Figure(go.Bar(x=d[valor], y=d[etiqueta], orientation="h", marker_color=np.where(d[valor] > 0, AMBAR, PIEDRA),
+                           hovertemplate="%{y}: %{x:+.4f}<extra></extra>"))
+    fig.add_vline(x=0, line_color="#9b9483")
+    fig.update_layout(title=titulo, height=alto, showlegend=False)
+    fig.update_xaxes(title="ΔAUC (AJ-KL − XGBoost)")
+    return fig
+
+
+def sobreajuste(s: pd.DataFrame) -> go.Figure:
+    """AUC de la validación interna (con que se eligieron los hiperparámetros) frente al del bloque externo."""
+    g = s.groupby("modelo")[["auc_interno", "auc_externo"]].mean().sort_values("auc_externo")
+    fig = go.Figure()
+    for m, r in g.iterrows():
+        fig.add_scatter(x=[r["auc_interno"], r["auc_externo"]], y=[m, m], mode="lines", line=dict(color="#cfc8b6", width=3),
+                        showlegend=False, hoverinfo="skip")
+    fig.add_scatter(x=g["auc_interno"], y=g.index, mode="markers", name="Validación interna (selección)",
+                    marker=dict(color=PIEDRA, size=10, symbol="circle-open", line=dict(width=2)),
+                    hovertemplate="%{y}: interno %{x:.4f}<extra></extra>")
+    fig.add_scatter(x=g["auc_externo"], y=g.index, mode="markers", name="Bloque externo (no visto)",
+                    marker=dict(color=[NARANJA if m.startswith("AJ-KL") else AZUL_RIO for m in g.index], size=10),
+                    hovertemplate="%{y}: externo %{x:.4f}<extra></extra>")
+    fig.update_layout(title="Diagnóstico de sobreajuste: AUC interno frente a externo (media de k1-k4)", height=420)
+    fig.update_xaxes(title="AUC")
+    return fig
+
+
+def matriz_literatura(m: pd.DataFrame) -> go.Figure:
+    g = m.groupby("base", sort=False)[["resultados", "revisados", "relevantes"]].sum()
+    fig = go.Figure()
+    for col, color, nombre in [("resultados", PIEDRA, "Resultados"), ("revisados", AZUL_RIO, "Revisados"), ("relevantes", AMBAR, "Relevantes")]:
+        fig.add_bar(x=g.index, y=g[col], name=nombre, marker_color=color, text=g[col], textposition="outside",
+                    hovertemplate="%{x}: %{y} " + nombre.lower() + "<extra></extra>")
+    fig.update_layout(title="Búsqueda sistemática (23 de octubre de 2026): registros por base", barmode="group", height=360)
+    fig.update_yaxes(title="Registros")
     return fig

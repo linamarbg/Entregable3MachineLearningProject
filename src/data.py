@@ -100,6 +100,12 @@ def resultados() -> dict:
     return _json("resumen_modelos")
 
 
+@lru_cache(maxsize=None)
+def sustentacion() -> dict:
+    """Cifras sueltas de las secciones que siguen la rúbrica (scripts/28_sustentacion_dashboard.py)."""
+    return _json("sustentacion")
+
+
 def modelos_disponibles() -> list[str]:
     return [m for m in ORDEN if (ART / m / "modelo.joblib").exists()]
 

@@ -1,10 +1,11 @@
-"""Sección 1: Contexto (narrativa, resumen visual y mapa de los corredores)."""
+"""Sección 1: Contexto (narrativa, formulación del problema, mapa de los corredores y recorrido de la sustentación)."""
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, dash_table, dcc, html
 
 import data as DT
 import plots as PL
+import sustentacion as S
 
 dash.register_page(__name__, path="/", name="Contexto", title="Contexto · Corredores de abastecimiento", order=0)
 
@@ -79,6 +80,8 @@ def layout(**_):
             (num(R["semanas"]), "Semanas (2018-2025)", "calendar-week", "kpi-ambar"),
         ]]),
 
+        S.recorrido(),
+
         dbc.Card([encabezado("geo-alt-fill", "El mapa de los corredores"), dbc.CardBody([
             dbc.Row([
                 dbc.Col([dbc.Label("Central mayorista", html_for="mapa-central"),
@@ -113,6 +116,9 @@ def layout(**_):
                 ], className="mb-0"),
             ])]), lg=6),
         ]),
+
+        dbc.Card([encabezado("calculator", "Formulación matemática del problema"), dbc.CardBody(S.md(S.FORMULACION_PROBLEMA))],
+                 id="formulacion"),
 
         dbc.Card([encabezado("database", "Datos"), dbc.CardBody([
             dbc.Row([

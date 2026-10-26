@@ -1,7 +1,7 @@
 """Capturas del dashboard para el capítulo 7 del libro (book/figuras/).
 
-Abre Chrome sin interfaz con el protocolo DevTools, recorre las tres páginas, hace clic en las pestañas de
-Modelos (incluida una predicción en vivo con un corredor real) y guarda nueve capturas en JPG. El mapa usa
+Abre Chrome sin interfaz con el protocolo DevTools, recorre las tres páginas, abre cada pestaña de
+Modelos con su enlace directo (incluida una predicción en vivo con un corredor real) y guarda 14 capturas en JPG. El mapa usa
 WebGL, por eso Chrome se lanza con SwiftShader (WebGL por software).
 
 Requisitos: el dashboard corriendo (python app.py) y `websocket-client`.
@@ -97,41 +97,36 @@ def main():
         p.cmd("Page.enable")
         W, H = 1440, 900
         p.tamano(W, H)
-        # Contexto: portada y mapa de los corredores
+        # Contexto: portada, recorrido de la sustentación y mapa de los corredores
         p.ir(BASE + "/", 9)
         p.captura("dash_contexto", W, H)
+        p.bajar_a("Recorrido de la sustentación", 90)
+        p.captura("dash_recorrido", W, H)
         p.bajar_a("El mapa de los corredores")
         time.sleep(4)
         p.captura("dash_mapa", W, H)
         # EDA
         p.ir(BASE + "/eda", 9)
         p.captura("dash_eda", W, H)
-        # Modelos: líderes, predicción en vivo, diagnóstico, comparación y modelo original
-        p.ir(BASE + "/modelos", 8)
+        # Modelos: cada pestaña se abre con su enlace directo (/modelos?tab=...)
+        p.ir(BASE + "/modelos?tab=t-lideres", 8)
         p.bajar_a("Mejor combinación", 160)
         p.captura("dash_lideres", W, H)
-        p.js("window.scrollTo(0, 0)")
-        p.clic_texto("Predicción en vivo")
+        p.ir(BASE + "/modelos?tab=t-pred", 8)
         p.js("[...document.querySelectorAll('button')].find(b => b.innerText.includes('Cargar')).click()")
         time.sleep(3)
         p.js("document.getElementById('b-predecir').click()")
         time.sleep(10)
         p.bajar_a("Datos del corredor", 150)
         p.captura("dash_prediccion", W, H)
-        p.js("window.scrollTo(0, 0)")
-        p.clic_texto("Diagnóstico", espera=8)
-        p.bajar_a("Curvas ROC", 150)
-        p.captura("dash_diagnostico", W, H)
-        p.js("window.scrollTo(0, 0)")
-        p.clic_texto("Comparación estadística", espera=6)
-        p.js("window.scrollTo(0, 330)")
-        time.sleep(1)
-        p.captura("dash_comparacion", W, H)
-        p.js("window.scrollTo(0, 0)")
-        p.clic_texto("Modelo original (AJ-KL)", espera=6)
-        p.js("window.scrollTo(0, 330)")
-        time.sleep(1)
-        p.captura("dash_original", W, H)
+        for tab, texto, nombre in [("t-orig", "Idea", "dash_original"), ("t-fund", "Formulación matemática y función objetivo", "dash_fundamentos"),
+                                   ("t-lit", "Protocolo de búsqueda", "dash_literatura"), ("t-diseno", "Separación de los datos", "dash_diseno"),
+                                   ("t-comp", "Criterio de superioridad", "dash_comparacion"), ("t-diag", "Curvas ROC", "dash_diagnostico"),
+                                   ("t-concl", "R1 · Novedad", "dash_conclusiones")]:
+            p.ir(BASE + f"/modelos?tab={tab}", 9)
+            p.bajar_a(texto, 150)
+            time.sleep(2)
+            p.captura(nombre, W, H)
         # tableta (768 × 1024)
         p.tamano(768, 1024, movil=True)
         p.ir(BASE + "/eda", 9)

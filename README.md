@@ -15,9 +15,9 @@ temporal, `src/original_model.py`), el dashboard en Dash y el libro.
 
 | Carpeta | Contenido |
 |---|---|
-| `app.py`, `pages/`, `assets/` | Dashboard multipágina (Contexto, EDA, Modelos) con mapa de corredores e ilustraciones propias (`assets/img/`) |
-| `src/` | Modelo original, carga de datos, figuras, artefactos, explicación SHAP |
-| `scripts/` | Pipeline numerado (ver capítulo 9 del libro); `25_robustez_ajkl.py` (robustez del modelo original) y `26_mapa_dashboard.py` (datos del mapa) |
+| `app.py`, `pages/`, `assets/` | Dashboard multipágina (Contexto, EDA, Modelos) con mapa de corredores, ilustraciones propias (`assets/img/`) y pestañas que siguen la rúbrica de la sustentación |
+| `src/` | Modelo original, carga de datos, figuras, artefactos, explicación SHAP y textos de la sustentación (`sustentacion.py`) |
+| `scripts/` | Pipeline numerado (ver capítulo 9 del libro); `25_robustez_ajkl.py` (robustez del modelo original), `26_mapa_dashboard.py` (datos del mapa) y `28_sustentacion_dashboard.py` (tablas de las pestañas de la sustentación) |
 | `artifacts/` | 10 modelos serializados con `metadata.json` y prueba de ida y vuelta |
 | `data/` | Panel, resultados de la validación anidada, revisión de literatura, datos del dashboard |
 | `cuadernos/`, `book/` | Fuentes y Jupyter Book |

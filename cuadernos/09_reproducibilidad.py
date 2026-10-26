@@ -24,7 +24,7 @@
 # | 6 | `scripts/13_artefactos.py todos`, `13b_aligerar.py` y `13c_artefacto_ajkl.py` | `artifacts/`, `artefactos_resumen.csv` | 40 min |
 # | 7 | `scripts/14_validacion_estadistica.py` y `14b_validacion_produccion.py` | `data/resultados/validacion/` | 15 min |
 # | 8 | `scripts/25_robustez_ajkl.py <pliegue> <experimento>` (k1-k4; sensibilidad, semillas, ruido, desbalance, muestra) | `data/resultados/robustez_ajkl/` | 1-40 min por combinación |
-# | 9 | `scripts/17_datos_dashboard.py` (EDA y modelos) y `scripts/26_mapa_dashboard.py` (mapa de corredores) | `data/dashboard/` | 15 min |
+# | 9 | `scripts/17_datos_dashboard.py` (EDA y modelos), `scripts/26_mapa_dashboard.py` (mapa de corredores) y `scripts/28_sustentacion_dashboard.py` (pliegues, encogimiento, robustez, errores y literatura) | `data/dashboard/` | 17 min |
 # | 10 | `scripts/20_tabla_maestra.py` | `data/resultados/tabla_maestra.csv` | segundos |
 # | 11 | `python app.py` y `scripts/27_capturas_dashboard.py` (capturas del capítulo 7) | `book/figuras/` | 2 min |
 # | 12 | `python src/py2nb.py cuadernos/X.py book/X.ipynb --ejecutar` y `jupyter-book build book/` | `book/_build/html` | 5 min |

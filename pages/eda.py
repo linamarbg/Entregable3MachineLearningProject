@@ -3,10 +3,12 @@ import dash
 import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
-from dash import Input, Output, callback, dcc, html
+from dash import Input, Output, callback, dash_table, dcc, html
+from dash.dash_table.Format import Format, Group, Scheme
 
 import data as DT
 import plots as PL
+import sustentacion as S
 
 dash.register_page(__name__, path="/eda", name="EDA", title="EDA · Corredores de abastecimiento", order=1)
 
@@ -70,6 +72,10 @@ def layout(**_):
             dbc.Col(tarjeta("Serie de interrupciones", [dcc.Loading(dcc.Graph(id="g-serie")), lectura("l-serie")]), lg=8),
             dbc.Col(tarjeta("Objetivo y balance de clases", [dcc.Graph(id="g-balance"), lectura("l-balance")]), lg=4),
         ]),
+        tarjeta("Estadística descriptiva de las variables numéricas (muestra filtrada)", [
+            dash_table.DataTable(id="t-desc", sort_action="native", page_size=8, style_table={"overflowX": "auto"},
+                                 style_cell=S.CELDA, style_header=S.ENCABEZADO_TABLA),
+            lectura("l-desc")]),
         dbc.Row([
             dbc.Col(tarjeta("Distribuciones univariadas", [
                 dcc.Dropdown(id="s-hist", options=opciones(NUMERICAS), value="ratio_t", clearable=False,
@@ -97,6 +103,10 @@ def layout(**_):
             dbc.Col(tarjeta("Serie de tiempo: descomposición", [dcc.Loading(dcc.Graph(id="g-stl")), lectura("l-stl")]), lg=7),
             dbc.Col(tarjeta("Autocorrelación y estacionariedad", [dcc.Graph(id="g-acf"), html.Div(id="t-estac"), lectura("l-acf")]), lg=5),
         ]),
+        dbc.Card([dbc.CardHeader("Preprocesamiento: transformaciones y prevención de fuga de información"), dbc.CardBody(dbc.Row([
+            dbc.Col([html.H6("Transformaciones y por qué", className="fw-bold"), S.md(S.TRANSFORMACIONES)], lg=6),
+            dbc.Col([html.H6("Cinco reglas contra la fuga de información", className="fw-bold"), S.md(S.FUGA)], lg=6),
+        ]))], id="fuga"),
     ])
 
 
@@ -140,8 +150,10 @@ def resumen(central, depto, ini, fin, km):
           f"{pct(t.max())} la semana del {pico:%d-%m-%Y}. La tasa sube en los choques comunes (confinamiento de 2020, "
           f"paro de 2021), por eso la validación respeta el orden temporal.")
     r = m["interrupcion_t1"].mean()
-    l2 = (f"{pct(r)} de las {len(m):,} corredor-semanas de la muestra filtrada son interrupciones: el problema es "
-          f"desbalanceado (1 a {(1 - r) / r:.1f}), por eso se evalúa con AUC, AUC-PR y F1 y no con la exactitud.").replace(",", ".")
+    filas = f"{len(m):,}".replace(",", ".")
+    razon = f"{(1 - r) / r:.1f}".replace(".", ",")
+    l2 = (f"{pct(r)} de las {filas} corredor-semanas de la muestra filtrada son interrupciones: el problema es "
+          f"desbalanceado (1 a {razon}), por eso se evalúa con AUC, AUC-PR y F1 y no con la exactitud.")
     return PL.serie_tasa(s), l1, PL.balance_clases(m), l2, "", False
 
 
@@ -199,6 +211,38 @@ def correlaciones(central, depto, ini, fin, km):
           f"La variable con más faltantes es «{ETQ.get(total.idxmax(), total.idxmax())}» ({total.max() * 100:.2f} %); se "
           "imputa con la mediana del entrenamiento dentro de la tubería, sin usar información de validación.")
     return PL.correlacion(c, ETQ), l1, PL.mapa_faltantes(tabla, ETQ), l2
+
+
+FMT3 = Format(precision=3, scheme=Scheme.decimal_or_exponent, decimal_delimiter=",", group_delimiter=".", group=Group.yes)
+
+
+@callback(Output("t-desc", "data"), Output("t-desc", "columns"), Output("l-desc", "children"), *FILTROS)
+def descriptiva(central, depto, ini, fin, km):
+    m, _ = filtrar(central, depto, ini, fin, km)
+    if len(m) < 50:
+        return [], [], ""
+    vars_ = [v for v in NUMERICAS if v in m.columns]
+    d = m[vars_].describe().T
+    y = m["interrupcion_t1"]
+    med1, med0 = m.loc[y == 1, vars_].median(), m.loc[y == 0, vars_].median()
+    t = pd.DataFrame({"Variable": [ETQ.get(v, v) for v in vars_], "n": d["count"].astype(int).to_numpy(),
+                      "Media": d["mean"].to_numpy(), "Desv. est.": d["std"].to_numpy(), "Mín.": d["min"].to_numpy(),
+                      "P25": d["25%"].to_numpy(), "Mediana": d["50%"].to_numpy(), "P75": d["75%"].to_numpy(), "Máx.": d["max"].to_numpy(),
+                      "% faltantes": 100 * m[vars_].isna().mean().to_numpy(),
+                      "Mediana con interrupción": med1.to_numpy(), "Mediana sin interrupción": med0.to_numpy()})
+    entero = Format(precision=0, scheme=Scheme.fixed, group=Group.yes, group_delimiter=".", decimal_delimiter=",")
+    columnas = [{"name": "Variable", "id": "Variable"}] + [{"name": c, "id": c, "type": "numeric", "format": entero if c == "n" else FMT3}
+                                                           for c in t.columns[1:]]
+    asim = m[[v for v in vars_ if v != "ratio_t1"]].skew().sort_values(ascending=False)
+    iqr = (d["75%"] - d["25%"]).replace(0, np.nan)
+    sep = ((med1 - med0).abs() / iqr).drop("ratio_t1", errors="ignore").dropna().sort_values(ascending=False)
+    v = sep.index[0]
+    c = lambda x, f: format(x, f).replace(".", ",")
+    texto = (f"Las variables más asimétricas son «{ETQ.get(asim.index[0])}», «{ETQ.get(asim.index[1])}» y «{ETQ.get(asim.index[2])}» "
+             f"(asimetría {c(asim.iloc[0], '.1f')}; {c(asim.iloc[1], '.1f')} y {c(asim.iloc[2], '.1f')}): colas largas a la derecha que "
+             f"justifican el log(1 + x) y la winsorización del preprocesamiento. La que más separa las clases es «{ETQ.get(v)}»: "
+             f"mediana {c(med1[v], '.3g')} con interrupción frente a {c(med0[v], '.3g')} sin ella.")
+    return t.to_dict("records"), columnas, texto
 
 
 @callback(Output("g-atip", "figure"), Output("l-atip", "children"), Input("s-atip", "value"), *FILTROS)

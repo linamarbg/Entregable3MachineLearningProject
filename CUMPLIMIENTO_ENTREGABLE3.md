@@ -8,7 +8,7 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 | Requisito | Estado | Evidencia |
 |---|---|---|
 | Tabla de trazabilidad con observación, acción, ubicación y evidencia | ✅ | Capítulo 1; `data/resultados/trazabilidad.csv` |
-| Todas las observaciones del docente al Entregable 2 resueltas | 🔧 | No se contaba con la retroalimentación escrita del Entregable 2; la fila del capítulo 1 lo declara y remite a la revisión propia del Entregable 2 (12 filas). Si llega antes de la entrega, agregar una fila por observación |
+| Todas las observaciones del docente al Entregable 2 resueltas | 🔧 | No se contaba con la retroalimentación escrita del Entregable 2; la fila del capítulo 1 lo declara y remite a la revisión propia del Entregable 2 (14 filas). Si llega antes de la entrega, agregar una fila por observación |
 | Resultados recalculados y consistentes; cambios de ranking reportados | ✅ | Sección 1.1 y columna «Resultados recalculados» |
 
 ## Bloque B. Mejores combinaciones y artefactos (sección 4)
@@ -27,7 +27,7 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 | Requisito | Estado | Evidencia |
 |---|---|---|
 | R1. Novedad: revisión en ≥ 3 bases, ≥ 5 cadenas, matriz de novedad, declaración y trabajos cercanos | ✅ | Capítulo 4 (WoS, Scopus y ScienceDirect) |
-| Tabla de diferenciación con 5 a 10 métodos afines por familia | ✅ | Capítulo 4 y pestaña «Modelo original» del dashboard |
+| Tabla de diferenciación con 5 a 10 métodos afines por familia | ✅ | Capítulo 4 y pestaña «Literatura y novedad» del dashboard |
 | R2. Clase propia (`BaseEstimator` + `ClassifierMixin`) con `fit`, `predict`, `predict_proba`, solo numpy y scipy | 🔧 | `src/original_model.py`. Se corrigió el orden de herencia: con el orden anterior, scikit-learn ≥ 1.6 no la reconocía como clasificador |
 | Pseudocódigo formal y análisis de complejidad contrastado con tiempos | ✅ | Secciones 5.4, 5.5 y 5.7 |
 | Sustento teórico verificable | 🔧 | Proposiciones 1 a 6, más las nuevas 7 a 10 (regla propia, cota de generalización, calibración monótona y consistencia), tabla de supuestos y tabla de teoría a evidencia (sección 5.3) |
@@ -58,9 +58,10 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 | Requisito | Estado | Evidencia |
 |---|---|---|
 | Multipágina (`use_pages=True`) con Contexto, EDA y Modelos y la estructura de carpetas pedida | ✅ | `app.py`, `pages/`, `src/`, `artifacts/`, `assets/`, `tests/`, `book/` |
-| Contexto: problema con cifra citada, pregunta, datos, diccionario, metodología, limitaciones y ética | ✅ | Página Contexto, ahora con ilustración propia y mapa de corredores |
-| EDA: filtros globales con callbacks, objetivo, univariadas, explorador bivariado, correlación, faltantes, atípicos, series de tiempo e interpretación por figura | ✅ | Página EDA |
-| Modelos: líderes, predicción en vivo con validación y SHAP local, diagnóstico, SHAP global, comparación estadística y subsección del modelo original | ✅ | Página Modelos (cinco pestañas) |
+| Contexto: problema con cifra citada, pregunta, datos, diccionario, metodología, limitaciones y ética | ✅ | Página Contexto, con ilustración propia, mapa de corredores, formulación matemática del problema y recorrido de la sustentación |
+| EDA: filtros globales con callbacks, objetivo, univariadas, explorador bivariado, correlación, faltantes, atípicos, series de tiempo e interpretación por figura | ✅ | Página EDA, con estadística descriptiva filtrable y tarjeta de transformaciones y prevención de fuga; correlación y faltantes optimizados para Render |
+| Modelos: líderes, predicción en vivo con validación y SHAP local, diagnóstico, SHAP global, comparación estadística y subsección del modelo original | ✅ | Página Modelos (nueve pestañas con enlace directo): además de las anteriores, fundamentos teóricos con ecuaciones y las 10 proposiciones, literatura y novedad, diseño experimental, robustez, sobreajuste, errores por subgrupo y conclusiones |
+| Sustentación sobre el dashboard (guía, sección 11) siguiendo la rúbrica ProyectosFinalesML202630 | 🔧 | Los 7 criterios de la rúbrica están cubiertos en el tablero; recorrido con tiempos y enlaces en la portada; `GUIA_SUSTENTACION.md` reordenada. Ya no hacen falta diapositivas |
 | Diseño: paleta ≤ 5 colores, tipografía, barra fija, plantilla Plotly, responsividad, rendimiento, robustez y accesibilidad | 🔧 | Nueva identidad visual del tema: verde montaña, azul río, ámbar cosecha, rojo tomate y gris piedra; cinco ilustraciones SVG propias con texto alternativo; menú que se colapsa en tableta |
 
 ## Bloque F. Despliegue en Render (sección 8)
@@ -86,4 +87,4 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
    Camilo queda como remoto `camilo`) y Render redespliega el dashboard con cada `git push` a `main`.
 3. Libro: publicado en GitHub Pages (rama `gh-pages`). Después de cualquier cambio, recompilar y repetir
    `~/.venvs/entregable3/bin/ghp-import -n -p -f book/_build/html`.
-4. Actualizar las diapositivas de la sustentación con la sección 5.13, las proposiciones 7 a 10 y el mapa del dashboard.
+4. Ensayar la sustentación sobre el dashboard con el recorrido de la portada (20 minutos, `GUIA_SUSTENTACION.md`).

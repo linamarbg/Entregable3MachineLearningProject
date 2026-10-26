@@ -1,9 +1,19 @@
 # Guía para la sustentación (rúbrica ProyectosFinalesML202630)
 
-Orden sugerido de la exposición (unos 20 minutos): presentación de diapositivas (problema → datos →
-benchmarks → literatura → AJ-KL → teoría → diseño → resultados → límites) y cierre con una demostración en vivo
-del dashboard: el mapa de los corredores en Contexto (elegir una central, por ejemplo Corabastos), la tabla de
-líderes, la predicción de un corredor real con el AJ-KL y la pestaña «Modelo original».
+La sustentación se hace sobre el dashboard desplegado (guía, sección 11), sin diapositivas. La tarjeta
+«Recorrido de la sustentación» de la portada tiene los siete criterios de la rúbrica con su tiempo, su peso y
+enlaces directos a cada página o pestaña. Orden sugerido (20 minutos):
+
+| Min. | Criterio (peso) | Dónde | Qué mostrar |
+|---|---|---|---|
+| 2 | 1 · Problema y formulación (10 %) | Contexto | Portada, mapa (elegir una central, por ejemplo Corabastos), pregunta y formulación matemática |
+| 3 | 2 · EDA y preprocesamiento (15 %) | EDA | Serie con los choques, balance, estadística descriptiva, correlación y faltantes; tarjeta de transformaciones y fuga |
+| 5 | 3 · Fundamentos teóricos (25 %) | Modelos → Modelo AJ-KL, Fundamentos teóricos, Literatura y novedad | Idea y pseudocódigo; función objetivo, descenso espejo, KL como prior, proposiciones; búsqueda en las tres bases y declaración de novedad |
+| 3 | 4 · Implementación y diseño (15 %) | Modelos → Diseño experimental | Línea de tiempo de la validación anidada, hiperparámetros elegidos, implementación y reproducibilidad |
+| 3 | 5 · Resultados y evaluación crítica (15 %) | Modelos → Líderes, Predicción en vivo, Validación estadística, Diagnóstico y errores | Métricas, una predicción real con su explicación, pruebas y robustez, sobreajuste y errores por subgrupo |
+| 2 | 6 · Conclusiones (10 %) | Modelos → Conclusiones | R1, R2 y R3, limitaciones y trabajo futuro |
+| 2 | 7 · Preguntas (10 %) | Informe y código | Tener abierto `src/original_model.py` y el entorno listo para `pytest` |
+
 Abran la URL de Render unos minutos antes: el plan gratuito tarda cerca de un minuto en despertar.
 
 ## Criterio 1 · Problema y formulación matemática (10 %)
@@ -51,8 +61,8 @@ como los pesos exponenciales de la literatura de expertos). Usamos L-BFGS como r
 central y el grupo, así que el anidamiento se cumple por construcción); la relación cambia lentamente en el
 tiempo (olvido con semivida log 2 / log(1/γ)).
 
-**Complejidad.** Entrenamiento O(L (n log n + K n M)), inferencia O(L log N + M) por fila. Medido: unos 10 s
-para 375 mil filas y unos 2 ms por cada mil predicciones del combinador (sin contar los modelos base).
+**Complejidad.** Entrenamiento O(L (n log n + K n M)), inferencia O(L log N + M) por fila. Medido (sección 5.7):
+unos 25 s para 375 mil filas y unos 4 ms por cada mil predicciones del combinador (sin contar los modelos base).
 
 **Generalización.** Rademacher por nodo ≤ √(2 log M / n_r) (lema de Massart): la capacidad crece con log M,
 no con el número de variables; la KL evita que los nodos pequeños se aparten del padre. Con la contracción de

@@ -1,5 +1,7 @@
-"""Sección 3: Modelos (líderes, predicción en vivo con SHAP local, diagnóstico, comparación estadística
-y modelo original)."""
+"""Sección 3: Modelos (líderes, predicción en vivo con SHAP local, modelo original y sus fundamentos, literatura,
+diseño experimental, validación estadística, diagnóstico y conclusiones).
+
+Las pestañas siguen la rúbrica de la sustentación; cada una se puede abrir directamente con /modelos?tab=<id>."""
 import dash
 import dash_bootstrap_components as dbc
 import numpy as np
@@ -8,6 +10,7 @@ from dash import Input, Output, State, callback, dash_table, dcc, html, no_updat
 
 import data as DT
 import plots as PL
+import sustentacion as S
 from explicacion import shap_permutaciones
 
 dash.register_page(__name__, path="/modelos", name="Modelos", title="Modelos · Corredores de abastecimiento", order=2)
@@ -68,7 +71,10 @@ def campo(col: dict):
                     html.Small(ayuda, className="text-secondary")], xs=12, sm=6, lg=4, xl=3, className="mb-2")
 
 
-def layout(**_):
+PESTANAS = ["t-lideres", "t-pred", "t-orig", "t-fund", "t-lit", "t-diseno", "t-comp", "t-diag", "t-concl"]
+
+
+def layout(tab=None, **_):
     disp = DT.modelos_disponibles()
     if not disp:
         return dbc.Alert("Faltan los artefactos de los modelos (ejecute scripts/13_artefactos.py).", color="warning")
@@ -104,6 +110,7 @@ def layout(**_):
                                                  "backgroundColor": "#fff4e6", "fontWeight": 600}]),
                     html.Div(R.get("lectura_lideres", ""), className="lectura mt-2"),
                 ]),
+                S.tarjeta("Métricas: qué mide cada una y por qué se usa", S.md(S.METRICAS), "rulers"),
             ]),
             dbc.Tab(label="Predicción en vivo", tab_id="t-pred", children=[
                 dbc.Row([
@@ -126,7 +133,23 @@ def layout(**_):
                     ], lg=5),
                 ]),
             ]),
-            dbc.Tab(label="Diagnóstico", tab_id="t-diag", children=[
+            dbc.Tab(label="Modelo AJ-KL", tab_id="t-orig", children=seccion_original(R)),
+            dbc.Tab(label="Fundamentos teóricos", tab_id="t-fund", children=S.fundamentos()),
+            dbc.Tab(label="Literatura y novedad", tab_id="t-lit", children=S.literatura()),
+            dbc.Tab(label="Diseño experimental", tab_id="t-diseno", children=S.diseno()),
+            dbc.Tab(label="Validación estadística", tab_id="t-comp", children=[
+                html.Div([html.Strong("Veredicto: "), R.get("veredicto", "pendiente")], className="veredicto mb-3"),
+                S.fundamento_pruebas()[0],
+                tarjeta("Diagrama de diferencia crítica (Friedman-Nemenyi, 48 meses del bucle externo, modelo original incluido)", [
+                    dcc.Graph(figure=PL.diagrama_cd(pd.Series(R["cd"]["rangos"]), R["cd"]["cd"],
+                                                    "Rango medio del AUC mensual (1 = mejor)") if R.get("cd") else PL.vacia()),
+                    html.Div(R.get("lectura_cd", ""), className="lectura"),
+                ]),
+                tarjeta("Pruebas de hipótesis", [tabla_pruebas()]),
+                S.fundamento_pruebas()[1],
+                *S.robustez(),
+            ]),
+            dbc.Tab(label="Diagnóstico y errores", tab_id="t-diag", children=[
                 tarjeta("Modelo", [selector_modelo("m-diag"), html.Small("Se compara siempre con XGBoost, el mejor benchmark.",
                                                                         className="text-secondary")]),
                 dbc.Row([dbc.Col(tarjeta("Curvas ROC y precisión-recall", [dcc.Loading(dcc.Graph(id="g-roc"))]), lg=7),
@@ -134,17 +157,10 @@ def layout(**_):
                 dbc.Row([dbc.Col(tarjeta("Calibración", [dcc.Graph(id="g-cal"), html.Div(id="l-cal", className="lectura")]), lg=6),
                          dbc.Col(tarjeta("Interpretabilidad global (SHAP)", [dcc.Graph(id="g-shap-global"),
                                                                              html.Div(id="l-shap", className="lectura")]), lg=6)]),
+                *S.errores(),
             ]),
-            dbc.Tab(label="Comparación estadística", tab_id="t-comp", children=[
-                tarjeta("Diagrama de diferencia crítica (Friedman-Nemenyi, 48 meses del bucle externo, modelo original incluido)", [
-                    dcc.Graph(figure=PL.diagrama_cd(pd.Series(R["cd"]["rangos"]), R["cd"]["cd"],
-                                                    "Rango medio del AUC mensual (1 = mejor)") if R.get("cd") else PL.vacia()),
-                    html.Div(R.get("lectura_cd", ""), className="lectura"),
-                ]),
-                tarjeta("Pruebas de hipótesis", [tabla_pruebas()]),
-            ]),
-            dbc.Tab(label="Modelo original (AJ-KL)", tab_id="t-orig", children=seccion_original(R)),
-        ], active_tab="t-lideres", className="mb-3"),
+            dbc.Tab(label="Conclusiones", tab_id="t-concl", children=S.conclusiones()),
+        ], id="pestanas-modelos", active_tab=tab if tab in PESTANAS else "t-lideres", className="mb-3"),
     ])
 
 
@@ -161,34 +177,24 @@ def tabla_pruebas():
 
 
 def seccion_original(R):
-    hist = DT.tabla("tpe_historial")
     abl = DT.tabla("ablacion")
-    afines = DT.tabla("metodos_afines")
     return [
         html.Div([html.Strong("Veredicto: "), R.get("veredicto", "pendiente")], className="veredicto mb-3"),
         dbc.Row([
             dbc.Col(tarjeta("Idea", [dcc.Markdown(R.get("descripcion_original", ""))]), lg=6),
             dbc.Col(tarjeta("Pseudocódigo", [html.Div(html.Pre(PSEUDOCODIGO), className="pseudocodigo")]), lg=6),
         ]),
-        tarjeta("Diferencias con la literatura (métodos afines por familia algorítmica)", [
-            dash_table.DataTable(data=afines.to_dict("records"), columns=[{"name": c, "id": c} for c in afines.columns],
-                                 style_cell={"fontSize": 12, "textAlign": "left", "whiteSpace": "normal", "height": "auto",
-                                             "padding": "5px"},
-                                 style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"}) if len(afines) else html.Div()]),
         tarjeta("Pesos del combinador por central mayorista (pliegue final)", [
             dcc.Graph(figure=PL.mapa_pesos(DT.tabla("pesos_central")) if len(DT.tabla("pesos_central")) else PL.vacia()),
             html.Div("Cada fila es una central y cada columna un modelo base; el color es el peso del modelo en el pool de esa "
                      "central. Los pesos cambian entre centrales: esa heterogeneidad es la que aprovecha la jerarquía.",
                      className="lectura original")]),
-        dbc.Row([
-            dbc.Col(tarjeta("Convergencia de la optimización (TPE, 24 evaluaciones)", [
-                dcc.Graph(figure=PL.convergencia_tpe(hist) if len(hist) else PL.vacia())]), lg=6),
-            dbc.Col(tarjeta("Ablación: aporte de cada componente (ΔAUC frente al modelo completo)", [
-                dash_table.DataTable(data=abl.to_dict("records"), columns=[{"name": c, "id": c} for c in abl.columns],
-                                     sort_action="native", style_cell={"fontSize": 12, "padding": "4px", "textAlign": "left"},
-                                     style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"}) if len(abl) else html.Div("Pendiente."),
-                html.Div(R.get("lectura_ablacion", ""), className="lectura original mt-2")]), lg=6),
-        ]),
+        tarjeta("Ablación y reglas estándar: aporte de cada componente (ΔAUC frente al modelo completo, mismo historial)", [
+            dash_table.DataTable(data=abl.to_dict("records"), columns=[{"name": c, "id": c} for c in abl.columns],
+                                 sort_action="native", style_table={"overflowX": "auto"},
+                                 style_cell={"fontSize": 12, "padding": "4px", "textAlign": "left"},
+                                 style_header={"backgroundColor": "#e9f2ea", "fontWeight": 700, "color": "#1f5135"}) if len(abl) else html.Div("Pendiente."),
+            html.Div(R.get("lectura_ablacion", ""), className="lectura original mt-2")]),
         tarjeta("Pruebas unitarias y tamaño del efecto", [dcc.Markdown(R.get("pruebas_unitarias", ""))]),
     ]
 
