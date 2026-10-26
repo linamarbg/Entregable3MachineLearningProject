@@ -1,4 +1,4 @@
-"""Sección 1: Contexto (narrativa, formulación del problema, mapa de los corredores y recorrido de la sustentación)."""
+"""Sección 1: Contexto (narrativa, formulación del problema y mapa de los corredores)."""
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, dash_table, dcc, html
@@ -79,8 +79,6 @@ def layout(**_):
             (num(R["centrales"]), "Centrales mayoristas", "shop", ""),
             (num(R["semanas"]), "Semanas (2018-2025)", "calendar-week", "kpi-ambar"),
         ]]),
-
-        S.recorrido(),
 
         dbc.Card([encabezado("geo-alt-fill", "El mapa de los corredores"), dbc.CardBody([
             dbc.Row([

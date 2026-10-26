@@ -61,7 +61,7 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
 | Contexto: problema con cifra citada, pregunta, datos, diccionario, metodología, limitaciones y ética | ✅ | Página Contexto, con ilustración propia, mapa de corredores, formulación matemática del problema y recorrido de la sustentación |
 | EDA: filtros globales con callbacks, objetivo, univariadas, explorador bivariado, correlación, faltantes, atípicos, series de tiempo e interpretación por figura | ✅ | Página EDA, con estadística descriptiva filtrable y tarjeta de transformaciones y prevención de fuga; correlación y faltantes optimizados para Render |
 | Modelos: líderes, predicción en vivo con validación y SHAP local, diagnóstico, SHAP global, comparación estadística y subsección del modelo original | ✅ | Página Modelos (nueve pestañas con enlace directo): además de las anteriores, fundamentos teóricos con ecuaciones y las 10 proposiciones, literatura y novedad, diseño experimental, robustez, sobreajuste, errores por subgrupo y conclusiones |
-| Sustentación sobre el dashboard (guía, sección 11) siguiendo la rúbrica ProyectosFinalesML202630 | 🔧 | Los 7 criterios de la rúbrica están cubiertos en el tablero; recorrido con tiempos y enlaces en la portada; `GUIA_SUSTENTACION.md` reordenada. Ya no hacen falta diapositivas |
+| Sustentación sobre el dashboard (guía, sección 11) siguiendo la rúbrica ProyectosFinalesML202630 | 🔧 | Los 7 criterios de la rúbrica están cubiertos en el tablero, que no muestra la rúbrica; el recorrido con tiempos y enlaces directos es interno (`GUIA_SUSTENTACION.md`). Ya no hacen falta diapositivas |
 | Diseño: paleta ≤ 5 colores, tipografía, barra fija, plantilla Plotly, responsividad, rendimiento, robustez y accesibilidad | 🔧 | Nueva identidad visual del tema: verde montaña, azul río, ámbar cosecha, rojo tomate y gris piedra; cinco ilustraciones SVG propias con texto alternativo; menú que se colapsa en tableta |
 
 ## Bloque F. Despliegue en Render (sección 8)
@@ -87,4 +87,4 @@ rúbrica). Estado: ✅ cumple · 🔧 cumple después de esta revisión · ⏳ d
    Camilo queda como remoto `camilo`) y Render redespliega el dashboard con cada `git push` a `main`.
 3. Libro: publicado en GitHub Pages (rama `gh-pages`). Después de cualquier cambio, recompilar y repetir
    `~/.venvs/entregable3/bin/ghp-import -n -p -f book/_build/html`.
-4. Ensayar la sustentación sobre el dashboard con el recorrido de la portada (20 minutos, `GUIA_SUSTENTACION.md`).
+4. Ensayar la sustentación sobre el dashboard con el recorrido de `GUIA_SUSTENTACION.md` (20 minutos).

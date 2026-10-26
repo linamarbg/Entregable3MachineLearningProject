@@ -1,18 +1,17 @@
 # Guía para la sustentación (rúbrica ProyectosFinalesML202630)
 
-La sustentación se hace sobre el dashboard desplegado (guía, sección 11), sin diapositivas. La tarjeta
-«Recorrido de la sustentación» de la portada tiene los siete criterios de la rúbrica con su tiempo, su peso y
-enlaces directos a cada página o pestaña. Orden sugerido (20 minutos):
+La sustentación se hace sobre el dashboard desplegado (guía, sección 11), sin diapositivas. Esta tabla es el
+recorrido interno: el tablero no muestra la rúbrica. Orden sugerido (20 minutos), con el enlace directo de cada parada:
 
-| Min. | Criterio (peso) | Dónde | Qué mostrar |
+| Min. | Criterio (peso) | Enlaces | Qué mostrar |
 |---|---|---|---|
-| 2 | 1 · Problema y formulación (10 %) | Contexto | Portada, mapa (elegir una central, por ejemplo Corabastos), pregunta y formulación matemática |
-| 3 | 2 · EDA y preprocesamiento (15 %) | EDA | Serie con los choques, balance, estadística descriptiva, correlación y faltantes; tarjeta de transformaciones y fuga |
-| 5 | 3 · Fundamentos teóricos (25 %) | Modelos → Modelo AJ-KL, Fundamentos teóricos, Literatura y novedad | Idea y pseudocódigo; función objetivo, descenso espejo, KL como prior, proposiciones; búsqueda en las tres bases y declaración de novedad |
-| 3 | 4 · Implementación y diseño (15 %) | Modelos → Diseño experimental | Línea de tiempo de la validación anidada, hiperparámetros elegidos, implementación y reproducibilidad |
-| 3 | 5 · Resultados y evaluación crítica (15 %) | Modelos → Líderes, Predicción en vivo, Validación estadística, Diagnóstico y errores | Métricas, una predicción real con su explicación, pruebas y robustez, sobreajuste y errores por subgrupo |
-| 2 | 6 · Conclusiones (10 %) | Modelos → Conclusiones | R1, R2 y R3, limitaciones y trabajo futuro |
-| 2 | 7 · Preguntas (10 %) | Informe y código | Tener abierto `src/original_model.py` y el entorno listo para `pytest` |
+| 2 | 1 · Problema y formulación (10 %) | [Contexto](https://sipsa-corredores-e3-2uw9.onrender.com/) · [formulación](https://sipsa-corredores-e3-2uw9.onrender.com/#formulacion) | Portada, mapa (elegir una central, por ejemplo Corabastos), pregunta y formulación matemática |
+| 3 | 2 · EDA y preprocesamiento (15 %) | [EDA](https://sipsa-corredores-e3-2uw9.onrender.com/eda) · [transformaciones y fuga](https://sipsa-corredores-e3-2uw9.onrender.com/eda#fuga) | Serie con los choques, balance, estadística descriptiva, correlación y faltantes; tarjeta de transformaciones y fuga |
+| 5 | 3 · Fundamentos teóricos (25 %) | [Modelo AJ-KL](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-orig) · [Fundamentos](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-fund) · [Literatura](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-lit) | Idea y pseudocódigo; función objetivo, descenso espejo, KL como prior, proposiciones; búsqueda en las tres bases y declaración de novedad |
+| 3 | 4 · Implementación y diseño (15 %) | [Diseño experimental](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-diseno) | Línea de tiempo de la validación anidada, hiperparámetros elegidos, implementación y reproducibilidad |
+| 3 | 5 · Resultados y evaluación crítica (15 %) | [Líderes](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-lideres) · [Predicción](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-pred) · [Validación](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-comp) · [Diagnóstico](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-diag) | Métricas, una predicción real con su explicación, pruebas y robustez, sobreajuste y errores por subgrupo |
+| 2 | 6 · Conclusiones (10 %) | [Conclusiones](https://sipsa-corredores-e3-2uw9.onrender.com/modelos?tab=t-concl) | R1, R2 y R3, limitaciones y trabajo futuro |
+| 2 | 7 · Preguntas (10 %) | [Informe](https://linamarbg.github.io/Entregable3MachineLearningProject/) · [Código](https://github.com/linamarbg/Entregable3MachineLearningProject) | Tener abierto `src/original_model.py` y el entorno listo para `pytest` |
 
 Abran la URL de Render unos minutos antes: el plan gratuito tarda cerca de un minuto en despertar.
 

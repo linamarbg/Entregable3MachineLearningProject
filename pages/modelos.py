@@ -1,7 +1,7 @@
 """Sección 3: Modelos (líderes, predicción en vivo con SHAP local, modelo original y sus fundamentos, literatura,
 diseño experimental, validación estadística, diagnóstico y conclusiones).
 
-Las pestañas siguen la rúbrica de la sustentación; cada una se puede abrir directamente con /modelos?tab=<id>."""
+Cada pestaña se puede abrir directamente con /modelos?tab=<id>."""
 import dash
 import dash_bootstrap_components as dbc
 import numpy as np

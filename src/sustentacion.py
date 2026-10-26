@@ -1,4 +1,4 @@
-"""Secciones del dashboard que siguen la rúbrica de la sustentación.
+"""Secciones del dashboard que sostienen la sustentación (fundamentos, literatura, diseño, validación y conclusiones).
 
 Reúne los textos (con ecuaciones en LaTeX, que dibuja MathJax) y los bloques de las pestañas de fundamentos,
 literatura, diseño experimental, validación, errores y conclusiones. Los textos resumen los capítulos 4 a 8 del
@@ -296,9 +296,9 @@ def fundamentos() -> list:
     nod = DT.tabla("encogimiento_nodos")
     comp = DT.tabla("complejidad_ajkl")
     bloques = [
-        dbc.Alert([html.I(className="bi bi-mortarboard me-2"), "Criterio 3 de la rúbrica (25 %): formulación del algoritmo, función "
-                   "objetivo, fundamento estadístico y matemático, optimización, supuestos, regularización, complejidad y "
-                   "generalización. Las demostraciones completas están en el capítulo 5 del informe."], color="light", className="guia-rubrica"),
+        dbc.Alert([html.I(className="bi bi-mortarboard me-2"), "Formulación del algoritmo, función objetivo, fundamento estadístico y "
+                   "matemático, optimización, supuestos, regularización, complejidad y generalización. Las demostraciones "
+                   "completas están en el capítulo 5 del informe."], color="light", className="nota-seccion"),
         tarjeta("Formulación matemática y función objetivo", md(FORMULACION_AJKL), "function"),
         tarjeta("Principio de optimización: descenso espejo con certificado", md(OPTIMIZACION), "graph-down-arrow"),
         dbc.Row([
@@ -405,7 +405,7 @@ def literatura() -> list:
     afines = DT.tabla("metodos_afines")
     bloques = [dbc.Alert([html.I(className="bi bi-search me-2"), "Evidencia de novedad (condición R1): la novedad no se declara, se "
                           "contrasta con una búsqueda documentada. Detalle completo en el capítulo 4 del informe."],
-                         color="light", className="guia-rubrica")]
+                         color="light", className="nota-seccion")]
     tot = m.groupby("base", sort=False)[["resultados", "revisados", "relevantes"]].sum() if len(m) else pd.DataFrame()
     bloques.append(dbc.Row([
         dbc.Col(tarjeta("Protocolo de búsqueda", md(PROTOCOLO_LITERATURA), "journal-text"), lg=5),
@@ -494,9 +494,9 @@ def diseno() -> list:
     pl = DT.tabla("pliegues")
     hp = DT.tabla("hiperparametros_ajkl")
     hist = DT.tabla("tpe_historial")
-    bloques = [dbc.Alert([html.I(className="bi bi-gear-wide-connected me-2"), "Criterio 4 de la rúbrica (15 %): implementación, "
-                          "hiperparámetros, separación de los datos, estrategia de validación, reproducibilidad y decisiones "
-                          "computacionales."], color="light", className="guia-rubrica"),
+    bloques = [dbc.Alert([html.I(className="bi bi-gear-wide-connected me-2"), "Implementación, hiperparámetros, separación de los "
+                          "datos, estrategia de validación, reproducibilidad y decisiones computacionales. Detalle en los capítulos "
+                          "3, 5 y 9 del informe."], color="light", className="nota-seccion"),
                tarjeta("Separación de los datos y estrategia de validación", [
                    dcc.Graph(figure=PL.linea_tiempo_pliegues(pl)) if len(pl) else html.Div(), md(VALIDACION_ANIDADA)], "calendar-range")]
     if len(hp):
@@ -692,9 +692,9 @@ FUTURO = r"""
 def conclusiones() -> list:
     R = DT.resultados()
     ext = DT.tabla("externos")
-    bloques = [dbc.Alert([html.I(className="bi bi-flag me-2"), "Criterio 6 de la rúbrica (10 %): conclusiones sustentadas, "
-                          "limitaciones teóricas y empíricas, capacidad de generalización y trabajo futuro."],
-                         color="light", className="guia-rubrica"),
+    bloques = [dbc.Alert([html.I(className="bi bi-flag me-2"), "Conclusiones sustentadas en los resultados, limitaciones teóricas y "
+                          "empíricas, capacidad de generalización y trabajo futuro. Detalle en el capítulo 8 del informe."],
+                         color="light", className="nota-seccion"),
                dbc.Row([dbc.Col(tarjeta(t, md(x), i, clase="h-100 tarjeta-veredicto"), md=4, className="mb-2") for t, x, i in [
                    ("R1 · Novedad: se cumple", "Sin antecedentes de combinación local o jerárquica de clasificadores para "
                     "interrupciones de corredores en **WoS, Scopus ni ScienceDirect** (pestaña *Literatura*).", "patch-check"),
@@ -726,35 +726,3 @@ def conclusiones() -> list:
                     "pestaña «Modelo AJ-KL»). Cuatro pliegues por conjunto no alcanzan para una prueba formal."),
         ], "globe-americas"))
     return bloques
-
-
-# ------------------------------------------------------------------------------- recorrido de la sustentación
-RECORRIDO = [
-    ("1", "Problema y formulación matemática", 2, 10, [("Contexto: pregunta, formulación y datos", "/#formulacion")]),
-    ("2", "EDA, datos y preprocesamiento", 3, 15, [("EDA", "/eda"), ("Transformaciones y fuga", "/eda#fuga")]),
-    ("3", "Fundamentos teóricos del modelo", 5, 25, [("Modelo AJ-KL", "/modelos?tab=t-orig"), ("Fundamentos", "/modelos?tab=t-fund"),
-                                                      ("Literatura y novedad", "/modelos?tab=t-lit")]),
-    ("4", "Implementación y diseño experimental", 3, 15, [("Diseño experimental", "/modelos?tab=t-diseno")]),
-    ("5", "Resultados y evaluación crítica", 3, 15, [("Líderes y métricas", "/modelos?tab=t-lideres"), ("Predicción en vivo", "/modelos?tab=t-pred"),
-                                                      ("Validación estadística", "/modelos?tab=t-comp"), ("Diagnóstico y errores", "/modelos?tab=t-diag")]),
-    ("6", "Conclusiones y limitaciones", 2, 10, [("Conclusiones", "/modelos?tab=t-concl")]),
-    ("7", "Dominio teórico y preguntas", 2, 10, [("Informe técnico", DT.LIBRO), ("Código", DT.REPO)]),
-]
-
-
-def recorrido() -> dbc.Card:
-    filas = []
-    for n, criterio, minutos, peso, enlaces in RECORRIDO:
-        links = []
-        for i, (texto, href) in enumerate(enlaces):
-            externo = href.startswith("http")
-            links += ([" · "] if i else []) + [html.A(texto, href=href, target="_blank" if externo else None)
-                                               if externo or "#" in href else dcc.Link(texto, href=href)]
-        filas.append(html.Tr([html.Td(html.Span(n, className="badge rounded-pill")), html.Td(criterio),
-                              html.Td(f"{minutos} min"), html.Td(f"{peso} %"), html.Td(links)]))
-    return dbc.Card([dbc.CardHeader([html.I(className="bi bi-easel2", **{"aria-hidden": "true"}),
-                                     "Recorrido de la sustentación (rúbrica: 7 criterios, 20 minutos)"]),
-                     dbc.CardBody(dbc.Table([html.Thead(html.Tr([html.Th(""), html.Th("Criterio"), html.Th("Tiempo"),
-                                                                 html.Th("Peso"), html.Th("Dónde está en el tablero")])),
-                                             html.Tbody(filas)], hover=True, responsive=True, size="sm", className="mb-0 recorrido"))],
-                    className="recorrido-card")

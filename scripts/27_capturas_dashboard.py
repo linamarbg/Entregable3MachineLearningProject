@@ -1,7 +1,7 @@
 """Capturas del dashboard para el capítulo 7 del libro (book/figuras/).
 
 Abre Chrome sin interfaz con el protocolo DevTools, recorre las tres páginas, abre cada pestaña de
-Modelos con su enlace directo (incluida una predicción en vivo con un corredor real) y guarda 14 capturas en JPG. El mapa usa
+Modelos con su enlace directo (incluida una predicción en vivo con un corredor real) y guarda 13 capturas en JPG. El mapa usa
 WebGL, por eso Chrome se lanza con SwiftShader (WebGL por software).
 
 Requisitos: el dashboard corriendo (python app.py) y `websocket-client`.
@@ -97,11 +97,9 @@ def main():
         p.cmd("Page.enable")
         W, H = 1440, 900
         p.tamano(W, H)
-        # Contexto: portada, recorrido de la sustentación y mapa de los corredores
+        # Contexto: portada y mapa de los corredores
         p.ir(BASE + "/", 9)
         p.captura("dash_contexto", W, H)
-        p.bajar_a("Recorrido de la sustentación", 90)
-        p.captura("dash_recorrido", W, H)
         p.bajar_a("El mapa de los corredores")
         time.sleep(4)
         p.captura("dash_mapa", W, H)

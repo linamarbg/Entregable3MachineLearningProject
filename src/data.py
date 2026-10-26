@@ -102,7 +102,7 @@ def resultados() -> dict:
 
 @lru_cache(maxsize=None)
 def sustentacion() -> dict:
-    """Cifras sueltas de las secciones que siguen la rúbrica (scripts/28_sustentacion_dashboard.py)."""
+    """Cifras sueltas de las pestañas de fundamentos, literatura y robustez (scripts/28_sustentacion_dashboard.py)."""
     return _json("sustentacion")
 
 

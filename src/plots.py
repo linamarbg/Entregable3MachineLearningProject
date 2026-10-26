@@ -347,7 +347,7 @@ def mapa_corredores(corr: pd.DataFrame, cent: pd.DataFrame, central: str | None 
     return fig
 
 
-# ------------------------------------------------------------------------------- sustentación (rúbrica)
+# ------------------------------------------------------------------------------- fundamentos, diseño, validación y errores
 def linea_tiempo_pliegues(pl: pd.DataFrame) -> go.Figure:
     """Bloques de la validación anidada: entrenamiento, hueco y validación (o prueba 2025) de cada pliegue."""
     fig = go.Figure()

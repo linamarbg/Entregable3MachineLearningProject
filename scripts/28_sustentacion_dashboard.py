@@ -1,4 +1,4 @@
-"""Datos de las secciones del dashboard que siguen la rúbrica de la sustentación (data/dashboard/).
+"""Datos de las pestañas de fundamentos, literatura, diseño, validación, errores y conclusiones (data/dashboard/).
 
   pliegues.parquet              fechas de entrenamiento, hueco y validación de cada bloque de la validación anidada
   hiperparametros_ajkl.parquet  hiperparámetros que eligió TPE en cada pliegue, historial y nodos del combinador
