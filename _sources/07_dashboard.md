@@ -3,8 +3,9 @@
 El dashboard está publicado en **<https://sipsa-corredores-e3-2uw9.onrender.com>**. Es una aplicación multipágina
 de Dash (`use_pages=True`) con tres secciones, Contexto, EDA y Modelos, pensada para que una persona sin
 formación en aprendizaje automático entienda el problema, explore los datos y use los modelos. Desde la
-versión 3.1 sirve además de soporte de la sustentación: sus pestañas siguen los siete criterios de la rúbrica y
-la portada tiene un recorrido con el tiempo, el peso y el enlace de cada criterio ({numref}`fig-dash-recorrido`).
+versión 3.1 también presenta el fundamento teórico y estadístico del modelo original, la revisión de literatura,
+el diseño experimental, la robustez y las conclusiones, de modo que la sustentación se puede hacer sobre el
+tablero.
 
 ## 7.1 Arquitectura
 
@@ -12,14 +13,14 @@ la portada tiene un recorrido con el tiempo, el peso y el enlace de cada criteri
 Entregable3MachineLearningProject/
 ├── app.py                  # crea la app, la barra de navegación fija y expone `server` para gunicorn
 ├── pages/
-│   ├── contexto.py         # sección 1: narrativa, recorrido de la sustentación, formulación, mapa, diccionario, ética
+│   ├── contexto.py         # sección 1: narrativa, formulación del problema, mapa, diccionario, metodología, ética
 │   ├── eda.py              # sección 2: filtros globales, estadística descriptiva, figuras, transformaciones y fuga
 │   └── modelos.py          # sección 3: nueve pestañas, de los líderes a las conclusiones (/modelos?tab=...)
 ├── src/
 │   ├── original_model.py   # clase ApilamientoJerarquicoKL (AJ-KL, numpy + scipy)
 │   ├── data.py             # carga única y en caché (lru_cache) de datos y artefactos
 │   ├── plots.py            # funciones de figuras Plotly reutilizadas por el dashboard y el libro
-│   ├── sustentacion.py     # textos con ecuaciones (MathJax) y bloques de las pestañas que siguen la rúbrica
+│   ├── sustentacion.py     # textos con ecuaciones (MathJax) y bloques de fundamentos, literatura, diseño y conclusiones
 │   ├── explicacion.py      # valores de Shapley por permutaciones para la explicación local
 │   └── artefactos.py       # tuberías completas, AJKLProduccion, metadatos y esquema de entrada
 ├── artifacts/              # 10 modelos serializados (7 del curso, LightGBM, CatBoost y AJ-KL) (joblib, compress=3), metadata.json y predicciones de referencia
@@ -52,20 +53,12 @@ después: los corredores largos, los de poco volumen y los que salen de municipi
 la pregunta de investigación y los objetivos, la **formulación matemática del problema** (razón de
 abastecimiento, variable objetivo, predictores medibles en $t$, tarea y criterio de evaluación, con ecuaciones
 dibujadas por MathJax), la fuente y el periodo de los datos, un diccionario de variables que se puede filtrar,
-el diagrama de la metodología y una sección de limitaciones, ética y sesgos. Bajo las cifras está el
-**recorrido de la sustentación**: los siete criterios de la rúbrica con su tiempo, su peso y enlaces directos a la
-página o pestaña donde se presenta cada uno.
+el diagrama de la metodología y una sección de limitaciones, ética y sesgos.
 
 ```{figure} figuras/dash_contexto.jpg
 :name: fig-dash-contexto
 :width: 95%
 Sección Contexto: portada con la ilustración del corredor y cifras clave.
-```
-
-```{figure} figuras/dash_recorrido.jpg
-:name: fig-dash-recorrido
-:width: 95%
-Recorrido de la sustentación: cada criterio de la rúbrica enlaza con la página o pestaña que lo cubre.
 ```
 
 ```{figure} figuras/dash_mapa.jpg
