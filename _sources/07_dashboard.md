@@ -2,7 +2,9 @@
 
 El dashboard está publicado en **<https://sipsa-corredores-e3-2uw9.onrender.com>**. Es una aplicación multipágina
 de Dash (`use_pages=True`) con tres secciones, Contexto, EDA y Modelos, pensada para que una persona sin
-formación en aprendizaje automático entienda el problema, explore los datos y use los modelos.
+formación en aprendizaje automático entienda el problema, explore los datos y use los modelos. Desde la
+versión 3.1 sirve además de soporte de la sustentación: sus pestañas siguen los siete criterios de la rúbrica y
+la portada tiene un recorrido con el tiempo, el peso y el enlace de cada criterio ({numref}`fig-dash-recorrido`).
 
 ## 7.1 Arquitectura
 
@@ -10,19 +12,22 @@ formación en aprendizaje automático entienda el problema, explore los datos y 
 Entregable3MachineLearningProject/
 ├── app.py                  # crea la app, la barra de navegación fija y expone `server` para gunicorn
 ├── pages/
-│   ├── contexto.py         # sección 1: narrativa estática, cifras clave, diccionario, metodología, ética
-│   ├── eda.py              # sección 2: filtros globales y callbacks que actualizan todas las figuras
-│   └── modelos.py          # sección 3: líderes, predicción en vivo, diagnóstico, comparación, modelo original
+│   ├── contexto.py         # sección 1: narrativa, recorrido de la sustentación, formulación, mapa, diccionario, ética
+│   ├── eda.py              # sección 2: filtros globales, estadística descriptiva, figuras, transformaciones y fuga
+│   └── modelos.py          # sección 3: nueve pestañas, de los líderes a las conclusiones (/modelos?tab=...)
 ├── src/
 │   ├── original_model.py   # clase ApilamientoJerarquicoKL (AJ-KL, numpy + scipy)
 │   ├── data.py             # carga única y en caché (lru_cache) de datos y artefactos
 │   ├── plots.py            # funciones de figuras Plotly reutilizadas por el dashboard y el libro
+│   ├── sustentacion.py     # textos con ecuaciones (MathJax) y bloques de las pestañas que siguen la rúbrica
 │   ├── explicacion.py      # valores de Shapley por permutaciones para la explicación local
 │   └── artefactos.py       # tuberías completas, AJKLProduccion, metadatos y esquema de entrada
 ├── artifacts/              # 10 modelos serializados (7 del curso, LightGBM, CatBoost y AJ-KL) (joblib, compress=3), metadata.json y predicciones de referencia
-├── data/dashboard/         # datos livianos: muestra del EDA, series semanales, mapa, predicciones 2025, SHAP, pruebas
+├── data/dashboard/         # datos livianos: muestra del EDA, series, mapa, predicciones 2025, SHAP, pruebas, robustez,
+│                           # literatura, pliegues, encogimiento por nodo (scripts 17, 26 y 28)
 ├── assets/estilo.css       # paleta de cinco colores y estilos
 ├── assets/img/             # ilustraciones propias en SVG (portada, alimentos, EDA, jerarquía del AJ-KL, logotipo)
+├── assets/anclas.js        # lleva a las anclas (/#formulacion, /eda#fuga) cuando Dash termina de dibujar
 ├── tests/                  # pytest: modelo original, explicación local y prueba de ida y vuelta
 ├── book/                   # este libro
 ├── requirements.txt        # versiones exactas para Render
@@ -44,13 +49,23 @@ corredores** ({numref}`fig-dash-mapa`): cada línea une un municipio de origen c
 color es la fracción de semanas con interrupción; el área de cada central es proporcional a las toneladas del
 último año, y un selector permite ver una sola central con su encuadre. El mapa muestra lo que el EDA confirma
 después: los corredores largos, los de poco volumen y los que salen de municipios PDET se interrumpen más. Siguen
-la pregunta de investigación y los objetivos, la fuente y el periodo de los datos, un diccionario de variables
-que se puede filtrar, el diagrama de la metodología y una sección de limitaciones, ética y sesgos.
+la pregunta de investigación y los objetivos, la **formulación matemática del problema** (razón de
+abastecimiento, variable objetivo, predictores medibles en $t$, tarea y criterio de evaluación, con ecuaciones
+dibujadas por MathJax), la fuente y el periodo de los datos, un diccionario de variables que se puede filtrar,
+el diagrama de la metodología y una sección de limitaciones, ética y sesgos. Bajo las cifras está el
+**recorrido de la sustentación**: los siete criterios de la rúbrica con su tiempo, su peso y enlaces directos a la
+página o pestaña donde se presenta cada uno.
 
 ```{figure} figuras/dash_contexto.jpg
 :name: fig-dash-contexto
 :width: 95%
 Sección Contexto: portada con la ilustración del corredor y cifras clave.
+```
+
+```{figure} figuras/dash_recorrido.jpg
+:name: fig-dash-recorrido
+:width: 95%
+Recorrido de la sustentación: cada criterio de la rúbrica enlaza con la página o pestaña que lo cubre.
 ```
 
 ```{figure} figuras/dash_mapa.jpg
@@ -63,8 +78,10 @@ Mapa de los 3.151 corredores regulares coloreados por su tasa histórica de inte
 `DatePickerRange` y distancia con `RangeSlider`) actualizan todas las figuras: serie semanal de interrupciones
 con los choques de 2020 y 2021 marcados, balance de clases, distribuciones univariadas, un explorador bivariado
 con selectores de ejes y color, la matriz de correlación de Spearman, faltantes y atípicos, la descomposición
-STL, la ACF/PACF y las pruebas ADF y KPSS. Cada figura lleva una frase de interpretación calculada con los
-datos filtrados, de modo que el texto cambia con la selección.
+STL, la ACF/PACF y las pruebas ADF y KPSS. Una tabla de **estadística descriptiva** (media, desviación,
+cuantiles, faltantes y mediana por clase) responde a los mismos filtros, y una tarjeta final explica las
+**transformaciones** del preprocesamiento y las **cinco reglas contra la fuga de información**. Cada figura lleva una
+frase de interpretación calculada con los datos filtrados, de modo que el texto cambia con la selección.
 
 ```{figure} figuras/dash_eda.jpg
 :name: fig-dash-eda
@@ -72,24 +89,32 @@ datos filtrados, de modo que el texto cambia con la selección.
 Sección EDA con los filtros globales.
 ```
 
-**Modelos.** Cinco pestañas:
+**Modelos.** Nueve pestañas, cada una con enlace directo (`/modelos?tab=t-fund`, por ejemplo):
 
 * *Tabla de líderes* (`DataTable` ordenable y filtrable): la mejor combinación de cada modelo, LightGBM, CatBoost y el AJ-KL, con
   las métricas del bucle externo como media ± desviación estándar, el AUC de 2025, el tiempo de inferencia y el
-  tamaño del artefacto.
+  tamaño del artefacto, y una tabla que justifica cada métrica.
 * *Predicción en vivo*: un formulario generado a partir del esquema de `metadata.json` (34 variables con su
   tipo y rango), un selector de modelo y un botón que carga un corredor real de 2025. La salida muestra la
   probabilidad, la alerta con el umbral del modelo y la explicación local por valores de Shapley. Las entradas
   vacías, no numéricas o imposibles (negativas, fracciones mayores que 1, categorías no vistas) se rechazan con
   un mensaje; las que caen fuera del rango de entrenamiento se aceptan con un aviso de extrapolación, porque
   valores como la antigüedad de un corredor crecen legítimamente con el tiempo.
-* *Diagnóstico*: curvas ROC y precisión-recall, matriz de confusión, diagrama de calibración y resumen SHAP
-  global del modelo elegido, siempre frente a XGBoost.
-* *Comparación estadística*: diagrama de diferencia crítica con el modelo original incluido y la tabla de
-  pruebas con p crudo y ajustado.
-* *Modelo original (AJ-KL)*: veredicto explícito, descripción, pseudocódigo, diferencias con la literatura,
-  pesos por central, aporte de cada modelo base a una predicción, convergencia de TPE, ablación y tamaños del
-  efecto.
+* *Modelo AJ-KL*: veredicto, idea, pseudocódigo, pesos por central, ablación y pruebas unitarias.
+* *Fundamentos teóricos* ({numref}`fig-dash-fundamentos`): formulación y función objetivo, descenso espejo con
+  certificado, regularización e interpretación bayesiana, fundamento estadístico, las diez proposiciones con su
+  idea de demostración, supuestos, complejidad con tiempos medidos y la evidencia del encogimiento por nodo.
+* *Literatura y novedad* ({numref}`fig-dash-literatura`): protocolo, matriz de novedad por base y cadena,
+  familias de modelos, trabajos más cercanos, diferencias por familia y declaración de novedad.
+* *Diseño experimental*: línea de tiempo de la validación anidada, espacio y elección de hiperparámetros,
+  implementación, reproducibilidad y decisiones computacionales.
+* *Validación estadística*: criterio de superioridad, diagrama de diferencia crítica, tabla de pruebas,
+  fundamento de cada prueba y robustez (sensibilidad, semillas, ruido, desbalance y tamaño de muestra).
+* *Diagnóstico y errores*: curvas ROC y precisión-recall, matriz de confusión, calibración y SHAP global frente a
+  XGBoost, diagnóstico de sobreajuste (AUC interno frente a externo) y análisis de errores por subgrupo y por
+  central.
+* *Conclusiones*: veredicto sobre R1, R2 y R3, hallazgos, limitaciones, trabajo futuro y generalización a tres
+  conjuntos adicionales.
 
 La barra de navegación tiene, además de las tres secciones, dos botones que abren este informe (Jupyter Book)
 y el repositorio de código en una pestaña nueva.
@@ -100,10 +125,16 @@ y el repositorio de código en una pestaña nueva.
 Predicción en vivo con explicación local.
 ```
 
-```{figure} figuras/dash_original.jpg
-:name: fig-dash-original
+```{figure} figuras/dash_fundamentos.jpg
+:name: fig-dash-fundamentos
 :width: 95%
-Subsección del modelo original con el veredicto.
+Pestaña de fundamentos teóricos: formulación y función objetivo del AJ-KL.
+```
+
+```{figure} figuras/dash_literatura.jpg
+:name: fig-dash-literatura
+:width: 95%
+Pestaña de literatura y novedad: protocolo y matriz de búsqueda en las tres bases.
 ```
 
 **Identidad visual.** La paleta sale del propio tema: verde montaña (`#1f5135`) para la estructura y los
@@ -141,5 +172,6 @@ Sección EDA en una tableta (768 × 1024).
    pública.
 
 El plan gratuito de Render suspende el servicio tras un periodo sin visitas, de modo que el primer acceso
-puede tardar cerca de un minuto. Para la sustentación conviene abrir la URL unos minutos antes. Con un solo
+puede tardar cerca de un minuto. Además tiene poca CPU: la matriz de correlación del EDA tardaba unos 30 s porque
+calculaba la Spearman de pandas por pares dos veces; ahora se calcula una sola vez con rangos y tarda unos 6 s. Para la sustentación conviene abrir la URL unos minutos antes. Con un solo
 proceso y los artefactos aligerados, la aplicación usa menos memoria de la que ofrece el plan gratuito.

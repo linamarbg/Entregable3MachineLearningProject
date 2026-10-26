@@ -590,6 +590,24 @@ depende de él; la última columna dice qué se recalculó.</p>
       <td>Tabla resumen de la sección 6.2</td>
       <td>Resultados nuevos; ninguno anterior cambia</td>
     </tr>
+    <tr>
+      <th>15</th>
+      <td>Revisión propia</td>
+      <td>La sustentación se hace sobre el dashboard (guía, sección 11), pero el tablero no mostraba la formulación matemática del problema, el fundamento teórico y estadístico del AJ-KL, la revisión de literatura, el diseño experimental, la robustez, el sobreajuste, los errores por subgrupo ni las conclusiones que pide la rúbrica.</td>
+      <td>Recorrido de la sustentación en la portada con los 7 criterios de la rúbrica; formulación del problema en Contexto; estadística descriptiva y tarjeta de transformaciones y fuga en EDA; Modelos pasa de 5 a 9 pestañas con enlace directo (fundamentos con ecuaciones y las 10 proposiciones, literatura y novedad, diseño experimental, validación con robustez, diagnóstico con sobreajuste y errores, co...</td>
+      <td>Capítulo 7 (figuras del recorrido, los fundamentos y la literatura)</td>
+      <td>src/sustentacion.py, pages/*.py, 14 capturas regeneradas con scripts/27_capturas_dashboard.py</td>
+      <td>Ninguno: el tablero solo muestra resultados ya calculados</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>Revisión propia</td>
+      <td>En Render la matriz de correlación y el mapa de faltantes tardaban unos 30 s y parecían no cargar; los nombres largos del mapa de faltantes se cortaban, y la lectura del balance de clases convertía en puntos las comas de la frase.</td>
+      <td>La Spearman se calcula una sola vez como Pearson sobre rangos (diferencia menor que 0,002 con la versión por pares); etiquetas partidas en dos líneas; formato numérico corregido y coma decimal en todas las figuras del tablero.</td>
+      <td>Capítulo 7 (despliegue)</td>
+      <td>Callback de 2 s a 0,3 s en local y de 30 s a unos 6 s en Render; el capítulo 2 conserva la Spearman exacta</td>
+      <td>Capítulo 2 reejecutado (misma cifra: |ρ| máx. 0,20)</td>
+    </tr>
   </tbody>
 </table>
 </div></div></div>
